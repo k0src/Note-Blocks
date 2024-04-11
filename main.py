@@ -153,7 +153,7 @@ class NoteEditWindow(QDialog):
         save_button.clicked.connect(self.saveNote)
         button_layout.addWidget(save_button)
 
-        self.edit_button = QPushButton("Edit")
+        self.edit_button = QPushButton("Preview")
         self.edit_button.clicked.connect(self.toggleEditPreview)
         button_layout.addWidget(self.edit_button)
         
@@ -176,7 +176,7 @@ class NoteEditWindow(QDialog):
         else:
             self.preview.hide()
             self.editor.show()
-        self.edit_button.setText("Preview")
+            self.edit_button.setText("Preview")
 
     def updateTitleLabelText(self, title):
         self.title_label.setText(title)
