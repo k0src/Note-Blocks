@@ -1,5 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
+from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, 
+                             QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
+                             QTextEdit, QPushButton, QTextBrowser)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
 from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette
 
@@ -86,7 +88,8 @@ class NoteNode(QWidget):
         self.setStyleSheet("background-color: #4e5661; border: 2px solid black; border-color: #212121;")
         self.draggable = False
         self.offset = QPoint()
-        self.text_content = ""
+        self.plain_text_content = ""
+        self.markdown_content = ""
         self.title = ""
         self.title_label = QLabel(self.title, self)
         self.title_label.setGeometry(0, 0, self.width(), 25)
@@ -105,8 +108,8 @@ class NoteNode(QWidget):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = False
 
-    def setTextContent(self, text):
-        self.text_content = text
+    def setTextContent(self, plain_text_content):
+        self.plain_text_content = plain_text_content
 
     def setTitle(self, title):
         self.title = title
@@ -122,26 +125,37 @@ class NoteNode(QWidget):
 class NoteEditWindow(QDialog):
     noteSaved = pyqtSignal(str)
 
-    def __init__(self, note_node, text_content="", parent=None):
+    def __init__(self, note_node, plain_text_content, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Note")
         self.resize(500, 600)
         self.note_node = note_node
+        self.plain_text_content = plain_text_content
+        self.markdown_content = ""
         
         layout = QVBoxLayout()
         
         self.title_label = QLabel("")
         layout.addWidget(self.title_label)
         
-        self.text_edit = QTextEdit()
-        self.text_edit.setText(text_content)
-        layout.addWidget(self.text_edit)
+        self.editor = QTextEdit()
+        self.editor.setPlainText(self.plain_text_content)
+        layout.addWidget(self.editor)
+
+        self.preview = QTextBrowser()
+        self.preview.setMarkdown(self.markdown_content)
+        self.preview.hide()
+        layout.addWidget(self.preview)
         
         button_layout = QHBoxLayout()
         
         save_button = QPushButton("Save")
         save_button.clicked.connect(self.saveNote)
         button_layout.addWidget(save_button)
+
+        self.edit_button = QPushButton("Edit")
+        self.edit_button.clicked.connect(self.toggleEditPreview)
+        button_layout.addWidget(self.edit_button)
         
         cancel_button = QPushButton("Cancel")
         cancel_button.clicked.connect(self.close)
@@ -153,12 +167,23 @@ class NoteEditWindow(QDialog):
 
         self.title_label.setText(self.note_node.title)
 
+    def toggleEditPreview(self):
+        if self.editor.isVisible():
+            self.preview.setMarkdown(self.editor.toPlainText())
+            self.editor.hide()
+            self.preview.show()
+            self.edit_button.setText("Edit")
+        else:
+            self.preview.hide()
+            self.editor.show()
+        self.edit_button.setText("Preview")
+
     def updateTitleLabelText(self, title):
         self.title_label.setText(title)
 
     def saveNote(self):
-        text = self.text_edit.toPlainText()
-        self.noteSaved.emit(text)
+        self.plain_text_content = self.editor.toPlainText()
+        self.noteSaved.emit(self.plain_text_content)
         self.close()
 
 class Canvas(QWidget):
@@ -276,7 +301,7 @@ class Canvas(QWidget):
     def editNote(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                edit_window = NoteEditWindow(note_node, text_content=note_node.text_content, parent=self)
+                edit_window = NoteEditWindow(note_node, plain_text_content=note_node.plain_text_content, parent=self)
                 edit_window.noteSaved.connect(note_node.setTextContent)
                 edit_window.exec()
                 break
