@@ -5,6 +5,13 @@ from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePoli
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
 from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette
 
+# FIX NOTES TOUCHING PROBLEM
+# pin method
+# embed images
+# embed yt
+# embed code
+# embed links
+
 class MovableTextLabel(QWidget):
     def __init__(self, text="", parent=None):
         super().__init__(parent)
