@@ -209,6 +209,7 @@ class Canvas(QWidget):
         input_dialog = QInputDialog(self)
         input_dialog.setWindowTitle("New Note")
         input_dialog.setLabelText("Enter Note Name:")
+        input_dialog.resize(300 , 100)
         input_dialog.move(cursor_pos)
         ok = input_dialog.exec()
         if ok:
