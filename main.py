@@ -1,7 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
+from PyQt6.QtWidgets import QApplication, QInputDialog, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
-from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent
+from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter
 
 class NoteNode(QWidget):
     def __init__(self, parent=None):
@@ -12,6 +12,11 @@ class NoteNode(QWidget):
         self.draggable = False
         self.offset = QPoint()
         self.text_content = ""
+        self.title = ""
+
+        self.title_label = QLabel(self.title, self)
+        self.title_label.setGeometry(0, 0, self.width(), 25)
+        self.title_label.setStyleSheet("color: black;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -28,6 +33,16 @@ class NoteNode(QWidget):
 
     def setTextContent(self, text):
         self.text_content = text
+
+    def setTitle(self, title):
+        self.title = title
+        self.title_label.setText(title)
+        self.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.drawText(10, 20, self.title)
 
 class NoteEditWindow(QDialog):
     noteSaved = pyqtSignal(str)
@@ -68,11 +83,11 @@ class NoteEditWindow(QDialog):
 class Canvas(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("New Canvas")
+        self.setWindowTitle("My Web")
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(layout)
-        self.title_label = QLabel("New Canvas")
+        self.title_label = QLabel("My Web")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
         font.setPointSize(24)
@@ -127,13 +142,32 @@ class Canvas(QWidget):
 
     def createNewNote(self):
         cursor_pos = QCursor.pos()
-        note_node = NoteNode(self)
-        note_node.move(cursor_pos)
-        self.note_nodes.append(note_node)
-        note_node.show()
+        input_dialog = QInputDialog(self)
+        input_dialog.setWindowTitle("New Note")
+        input_dialog.setLabelText("Enter Note Name:")
+        input_dialog.move(cursor_pos)
+        ok = input_dialog.exec()
+        if ok:
+            title = input_dialog.textValue()
+            note_node = NoteNode(self)
+            note_node.move(cursor_pos)
+            note_node.setTitle(title)
+            self.note_nodes.append(note_node)
+            note_node.show()
 
     def renameNote(self):
-        print("Rename Note")
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Rename Note")
+                input_dialog.setLabelText("Enter Note Name:")
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    title = input_dialog.textValue()
+                    note_node.setTitle(title)
+                break
 
     def copyActionTriggered(self):
         print("Copy")
@@ -171,6 +205,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.canvas = Canvas()
         self.setCentralWidget(self.canvas)
+        self.setWindowTitle("Mind Web v0.1")
 
 def main():
     app = QApplication(sys.argv)
