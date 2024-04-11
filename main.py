@@ -208,9 +208,9 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
 
-        edit_note_action = menu.addAction("Edit Note")
-        rename_note_action = menu.addAction("Rename Note")
+        edit_note_action = menu.addAction("Edit")
         note_color_action = menu.addAction("Note Color")
+        rename_note_action = menu.addAction("Rename")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -287,11 +287,26 @@ class Canvas(QWidget):
                 input_dialog = QInputDialog(self)
                 input_dialog.setWindowTitle("Rename Note")
                 input_dialog.setLabelText("Enter Note Name:")
+                input_dialog.resize(300 , 100)
                 input_dialog.move(cursor_pos)
                 ok = input_dialog.exec()
                 if ok:
                     title = input_dialog.textValue()
                     note_node.setTitle(title)
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Rename Text Label")
+                input_dialog.setLabelText("Enter Text:")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    new_text = input_dialog.textValue()
+                    text_label.setText(new_text)
                 break
 
     def changeNoteColor(self):
