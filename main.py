@@ -1,16 +1,67 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
-                             QTextEdit, QPushButton, QTextBrowser)
+                             QTextEdit, QPushButton, QTextBrowser, QFileDialog)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
-from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette
+from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette, QPixmap
 
 # FIX NOTES TOUCHING PROBLEM
 # pin method
-# embed images
+# embed images - delete, bring to front, send to back
 # embed yt
 # embed code
 # embed links
+
+class ImageWidget(QWidget):
+    def __init__(self, pixmap, parent=None):
+        super().__init__(parent)
+        self.original_pixmap = pixmap
+        self.aspect_ratio = pixmap.width() / pixmap.height()
+
+        new_width = int(pixmap.width() / 2)
+        new_height = int(new_width / self.aspect_ratio)
+
+        self.setFixedSize(new_width, new_height)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("border: 2px solid black; border-color: #212121;")
+        self.draggable = False
+        self.offset = QPoint()
+
+        self.image_label = QLabel(self)
+        self.image_label.setPixmap(pixmap.scaled(new_width, new_height, Qt.AspectRatioMode.KeepAspectRatio))
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            resize_handle_rect = QRect(self.width() - 10, self.height() - 10, 10, 10)
+            if resize_handle_rect.contains(event.pos()):
+                self.resizing = True
+                self.resize_offset = event.pos()
+            else:
+                self.draggable = True
+                self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.resizing:
+            current_width = self.width()
+            current_height = self.height()
+
+            new_width = max(200, current_width + (event.pos().x() - self.resize_offset.x()))
+            new_height = max(200, current_height + (event.pos().y() - self.resize_offset.y()))
+            
+            self.resize(new_width, new_height)
+            
+            self.resize_offset = event.pos()
+            
+        elif self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.resizing:
+                self.resizing = False
+            elif self.draggable:
+                self.draggable = False
 
 class MovableTextLabel(QWidget):
     def __init__(self, text="", parent=None):
@@ -212,6 +263,7 @@ class Canvas(QWidget):
         self.note_nodes = []
         self.subcanvases = []
         self.text_labels = []
+        self.images = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -221,8 +273,9 @@ class Canvas(QWidget):
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         new_note_action = menu.addAction("New Note")
-        new_subcanvas_action = menu.addAction("New Canvas")
         new_text_label_action = menu.addAction("New Text Label")
+        new_image_action = menu.addAction("New Image")
+        new_subcanvas_action = menu.addAction("New Canvas")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -253,8 +306,9 @@ class Canvas(QWidget):
         delete_action = menu.addAction("Delete")
 
         new_note_action.triggered.connect(self.createNewNote)
-        new_subcanvas_action.triggered.connect(self.createSubcanvas)
         new_text_label_action.triggered.connect(self.createNewTextLabel)
+        new_image_action.triggered.connect(self.createNewImage)
+        new_subcanvas_action.triggered.connect(self.createSubcanvas)
 
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
@@ -285,7 +339,6 @@ class Canvas(QWidget):
             note_node.setTitle(title)
             self.note_nodes.append(note_node)
             note_node.show()
-
             self.title_label.raise_()
 
     def createNewTextLabel(self):
@@ -302,7 +355,15 @@ class Canvas(QWidget):
             self.text_labels.append(text_label)
             text_label.adjustSize()
             text_label.show()
+            self.title_label.raise_()
 
+    def createNewImage(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Image Files (*.png *.jpg *.bmp)")
+        if file_path:
+            pixmap = QPixmap(file_path)
+            image_widget = ImageWidget(pixmap, self)
+            self.layout().addWidget(image_widget)
+            self.images.append(image_widget)
             self.title_label.raise_()
 
     def editNote(self):
