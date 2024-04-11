@@ -50,7 +50,7 @@ class NoteEditWindow(QDialog):
     def __init__(self, text_content="", parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Note")
-        self.setFixedSize(500, 600)
+        self.resize(500, 600)
         
         layout = QVBoxLayout()
         
@@ -189,6 +189,7 @@ class Canvas(QWidget):
         self.title_edit = QLineEdit(self.title_label.text())
         self.title_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_edit.setStyleSheet("font-size: 24px;")
+        self.title_edit.setFixedHeight(40)
         self.title_edit.returnPressed.connect(self.updateTitle)
         self.layout().replaceWidget(self.title_label, self.title_edit)
         self.title_edit.selectAll()
