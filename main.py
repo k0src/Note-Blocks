@@ -1,6 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent
 
 class NoteNode(QWidget):
@@ -11,19 +11,59 @@ class NoteNode(QWidget):
         self.setStyleSheet("background-color: #858585; border: 2px solid black;")
         self.draggable = False
         self.offset = QPoint()
+        self.text_content = ""
 
-    def mousePressEvent(self, event: QMouseEvent):
+    def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = True
             self.offset = event.pos()
 
-    def mouseMoveEvent(self, event: QMouseEvent):
+    def mouseMoveEvent(self, event):
         if self.draggable:
             self.move(self.mapToParent(event.pos() - self.offset))
 
-    def mouseReleaseEvent(self, event: QMouseEvent):
+    def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = False
+
+    def setTextContent(self, text):
+        self.text_content = text
+
+class NoteEditWindow(QDialog):
+    noteSaved = pyqtSignal(str)
+
+    def __init__(self, text_content="", parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Note")
+        self.setFixedSize(500, 600)
+        
+        layout = QVBoxLayout()
+        
+        self.title_label = QLabel("Note:")
+        layout.addWidget(self.title_label)
+        
+        self.text_edit = QTextEdit()
+        self.text_edit.setText(text_content)
+        layout.addWidget(self.text_edit)
+        
+        button_layout = QHBoxLayout()
+        
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(self.saveNote)
+        button_layout.addWidget(save_button)
+        
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.close)
+        button_layout.addWidget(cancel_button)
+        
+        layout.addLayout(button_layout)
+        
+        self.setLayout(layout)
+
+    def saveNote(self):
+        text = self.text_edit.toPlainText()
+        self.noteSaved.emit(text)
+        self.close()
 
 class Canvas(QWidget):
     def __init__(self):
@@ -50,7 +90,9 @@ class Canvas(QWidget):
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         new_note_action = menu.addAction("New Note")
-        
+        edit_note_action = menu.addAction("Edit Note")
+        rename_note_action = menu.addAction("Rename Note")
+
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
@@ -65,7 +107,9 @@ class Canvas(QWidget):
 
         delete_action = menu.addAction("Delete Note")
 
+        edit_note_action.triggered.connect(self.editNote)
         new_note_action.triggered.connect(self.createNewNote)
+        rename_note_action.triggered.connect(self.renameNote)
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
@@ -73,12 +117,23 @@ class Canvas(QWidget):
 
         action = menu.exec(self.mapToGlobal(event.pos()))
 
+    def editNote(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                edit_window = NoteEditWindow(text_content=note_node.text_content, parent=self)
+                edit_window.noteSaved.connect(note_node.setTextContent)
+                edit_window.exec()
+                break
+
     def createNewNote(self):
         cursor_pos = QCursor.pos()
         note_node = NoteNode(self)
         note_node.move(cursor_pos)
         self.note_nodes.append(note_node)
         note_node.show()
+
+    def renameNote(self):
+        print("Rename Note")
 
     def copyActionTriggered(self):
         print("Copy")
