@@ -1,7 +1,29 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QAction
+from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent
+
+class NoteNode(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(100, 120)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: gray; border: 2px solid black;")
+        self.draggable = False
+        self.offset = QPoint()
+
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = True
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        if self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = False
 
 class Canvas(QWidget):
     def __init__(self):
@@ -13,7 +35,7 @@ class Canvas(QWidget):
         self.title_label = QLabel("New Canvas")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
-        font.setPointSize(24)  # Adjust the font size as desired
+        font.setPointSize(24)
         self.title_label.setFont(font)
         layout.addWidget(self.title_label)
         self.title_label.setMouseTracking(True)
@@ -24,7 +46,6 @@ class Canvas(QWidget):
             self.editTitle()
         return super().eventFilter(obj, event)
 
-    # NEW CODE: Context menu event handler
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         new_note_action = menu.addAction("New Note")
@@ -37,15 +58,20 @@ class Canvas(QWidget):
         cut_action = menu.addAction("Cut")
         paste_action = menu.addAction("Paste")
 
-        new_note_action.triggered.connect(self.newNoteActionTriggered)
+        
+
+        new_note_action.triggered.connect(self.createNewNote)
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
 
-        action = menu.exec_(self.mapToGlobal(event.pos()))
+        action = menu.exec(self.mapToGlobal(event.pos()))
 
-    def newNoteActionTriggered(self):
-        print("New Note")
+    def createNewNote(self):
+        cursor_pos = QCursor.pos()
+        note_node = NoteNode(self)
+        note_node.move(cursor_pos)
+        note_node.show()
 
     def copyActionTriggered(self):
         print("Copy")
