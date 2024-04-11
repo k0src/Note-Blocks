@@ -1,7 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QInputDialog, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
+from PyQt6.QtWidgets import QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
-from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor
+from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette
 
 class Subcanvas(QWidget):
     def __init__(self, parent=None):
@@ -14,6 +14,18 @@ class Subcanvas(QWidget):
         self.resizing = False
         self.resize_offset = QPoint()
         self.draggable = False
+
+        self.color_picker_widget = QWidget(self)
+        self.color_picker_widget.setGeometry(self.width() - 195, 5, 15, 15)
+        self.color_picker_widget.setStyleSheet("background-color: white; border: 2px solid black;")
+        self.color_picker_widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        self.color_picker_widget.mousePressEvent = self.openColorPicker
+
+    def openColorPicker(self, event):
+        color = QColorDialog.getColor(self.palette().color(QPalette.ColorRole.Window), self)
+        if color.isValid():
+            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -136,11 +148,11 @@ class NoteEditWindow(QDialog):
 class Canvas(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My Blocks")
+        self.setWindowTitle("My Notes")
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(layout)
-        self.title_label = QLabel("My Blocks")
+        self.title_label = QLabel("My Notes")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
         font.setPointSize(24)
