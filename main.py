@@ -214,7 +214,7 @@ class Canvas(QWidget):
 
         bring_to_front_action = menu.addAction("Move Foward")
         send_to_back_action = menu.addAction("Move Backwards")
-        
+
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
