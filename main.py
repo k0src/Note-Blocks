@@ -212,14 +212,13 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
 
-        delete_action = menu.addAction("Delete")
-
+        bring_to_front_action = menu.addAction("Move Foward")
+        send_to_back_action = menu.addAction("Move Backwards")
+        
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
-
-        bring_to_front_action = menu.addAction("Bring to Front")
-        send_to_back_action = menu.addAction("Send to Back")
+        delete_action = menu.addAction("Delete")
 
         new_note_action.triggered.connect(self.createNewNote)
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
@@ -255,6 +254,8 @@ class Canvas(QWidget):
             self.note_nodes.append(note_node)
             note_node.show()
 
+            self.title_label.raise_()
+
     def createNewTextLabel(self):
         cursor_pos = QCursor.pos()
         input_dialog = QInputDialog(self)
@@ -269,6 +270,8 @@ class Canvas(QWidget):
             self.text_labels.append(text_label)
             text_label.adjustSize()
             text_label.show()
+
+            self.title_label.raise_()
 
     def editNote(self):
         for note_node in self.note_nodes:
@@ -336,16 +339,19 @@ class Canvas(QWidget):
         for note_node in self.note_nodes:
             if note_node.underMouse():
                 note_node.raise_()
+                self.title_label.raise_()
                 break
 
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
                 subcanvas.raise_()
+                self.title_label.raise_()
                 break
 
         for text_label in self.text_labels:
             if text_label.underMouse():
                 text_label.raise_()
+                self.title_label.raise_()
                 break
 
     def sendToBack(self):
@@ -371,6 +377,8 @@ class Canvas(QWidget):
         subcanvas.lower()
         self.subcanvases.append(subcanvas)
         subcanvas.show()
+
+        self.title_label.raise_()
 
     def copyActionTriggered(self):
         print("Copy")
