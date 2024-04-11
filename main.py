@@ -18,8 +18,18 @@ class ImageWidget(QWidget):
         self.original_pixmap = pixmap
         self.aspect_ratio = pixmap.width() / pixmap.height()
 
-        new_width = int(pixmap.width() / 2)
-        new_height = int(new_width / self.aspect_ratio)
+        new_width = pixmap.width() // 2
+        new_height = pixmap.height() // 2
+
+        if new_width > 1500 or new_height > 1500:
+            new_width //= 4
+            new_height //= 4
+        elif new_width > 3000 or new_height > 3000:
+            new_width //= 8
+            new_height //= 8
+        elif new_width > 6000 or new_height > 6000:
+            new_width //= 16
+            new_height //= 16
 
         self.setFixedSize(new_width, new_height)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -33,35 +43,16 @@ class ImageWidget(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            resize_handle_rect = QRect(self.width() - 10, self.height() - 10, 10, 10)
-            if resize_handle_rect.contains(event.pos()):
-                self.resizing = True
-                self.resize_offset = event.pos()
-            else:
-                self.draggable = True
-                self.offset = event.pos()
+            self.draggable = True
+            self.offset = event.pos()
 
     def mouseMoveEvent(self, event):
-        if self.resizing:
-            current_width = self.width()
-            current_height = self.height()
-
-            new_width = max(200, current_width + (event.pos().x() - self.resize_offset.x()))
-            new_height = max(200, current_height + (event.pos().y() - self.resize_offset.y()))
-            
-            self.resize(new_width, new_height)
-            
-            self.resize_offset = event.pos()
-            
-        elif self.draggable:
+        if self.draggable:
             self.move(self.mapToParent(event.pos() - self.offset))
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            if self.resizing:
-                self.resizing = False
-            elif self.draggable:
-                self.draggable = False
+            self.draggable = False
 
 class MovableTextLabel(QWidget):
     def __init__(self, text="", parent=None):
@@ -358,12 +349,14 @@ class Canvas(QWidget):
             self.title_label.raise_()
 
     def createNewImage(self):
+        cursor_pos = QCursor.pos()
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Image Files (*.png *.jpg *.bmp)")
         if file_path:
             pixmap = QPixmap(file_path)
             image_widget = ImageWidget(pixmap, self)
-            self.layout().addWidget(image_widget)
             self.images.append(image_widget)
+            image_widget.move(cursor_pos)
+            image_widget.show()
             self.title_label.raise_()
 
     def editNote(self):
