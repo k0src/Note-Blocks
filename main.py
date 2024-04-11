@@ -4,6 +4,8 @@ from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter
 
 class NoteNode(QWidget):
+    titleChanged = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedSize(100, 120)
@@ -37,6 +39,7 @@ class NoteNode(QWidget):
     def setTitle(self, title):
         self.title = title
         self.title_label.setText(title)
+        self.titleChanged.emit(title)
         self.update()
 
     def paintEvent(self, event):
@@ -47,14 +50,15 @@ class NoteNode(QWidget):
 class NoteEditWindow(QDialog):
     noteSaved = pyqtSignal(str)
 
-    def __init__(self, text_content="", parent=None):
+    def __init__(self, note_node, text_content="", parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Note")
         self.resize(500, 600)
+        self.note_node = note_node
         
         layout = QVBoxLayout()
         
-        self.title_label = QLabel("Note:")
+        self.title_label = QLabel("")
         layout.addWidget(self.title_label)
         
         self.text_edit = QTextEdit()
@@ -74,6 +78,11 @@ class NoteEditWindow(QDialog):
         layout.addLayout(button_layout)
         
         self.setLayout(layout)
+
+        self.title_label.setText(self.note_node.title)
+
+    def updateTitleLabelText(self, title):
+        self.title_label.setText(title)
 
     def saveNote(self):
         text = self.text_edit.toPlainText()
@@ -135,7 +144,7 @@ class Canvas(QWidget):
     def editNote(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                edit_window = NoteEditWindow(text_content=note_node.text_content, parent=self)
+                edit_window = NoteEditWindow(note_node, text_content=note_node.text_content, parent=self)
                 edit_window.noteSaved.connect(note_node.setTextContent)
                 edit_window.exec()
                 break
