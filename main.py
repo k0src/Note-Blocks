@@ -10,14 +10,14 @@ class Subcanvas(QWidget):
         self.setMinimumSize(200, 200)
         self.setMaximumSize(parent.size())
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #3b3b3b; border: 2px solid black;")
+        self.setStyleSheet("background-color: #4e6159; border: 2px solid black; border-color: #2e2e2e;")
         self.resizing = False
         self.resize_offset = QPoint()
         self.draggable = False
 
         self.color_picker_widget = QWidget(self)
         self.color_picker_widget.setGeometry(self.width() - 195, 5, 15, 15)
-        self.color_picker_widget.setStyleSheet("background-color: white; border: 2px solid black;")
+        self.color_picker_widget.setStyleSheet("background-color: white; border: 2px solid black; border-color: #2e2e2e;")
         self.color_picker_widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self.color_picker_widget.mousePressEvent = self.openColorPicker
@@ -25,7 +25,7 @@ class Subcanvas(QWidget):
     def openColorPicker(self, event):
         color = QColorDialog.getColor(self.palette().color(QPalette.ColorRole.Window), self)
         if color.isValid():
-            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black;")
+            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #2e2e2e;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -67,7 +67,7 @@ class NoteNode(QWidget):
         super().__init__(parent)
         self.setFixedSize(100, 120)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #858585; border: 2px solid black;")
+        self.setStyleSheet("background-color: #4e5661; border: 2px solid black; border-color: #2e2e2e;")
         self.draggable = False
         self.offset = QPoint()
         self.text_content = ""
@@ -174,6 +174,7 @@ class Canvas(QWidget):
         new_subcanvas_action = menu.addAction("New Canvas")
         edit_note_action = menu.addAction("Edit Note")
         rename_note_action = menu.addAction("Rename Note")
+        note_color_action = menu.addAction("Note Color")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -193,6 +194,7 @@ class Canvas(QWidget):
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
+        note_color_action.triggered.connect(self.changeNoteColor)
        
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
@@ -224,14 +226,6 @@ class Canvas(QWidget):
                 edit_window.exec()
                 break
 
-    def createSubcanvas(self):
-        cursor_pos = QCursor.pos()
-        subcanvas = Subcanvas(parent=self)
-        subcanvas.move(cursor_pos)
-        subcanvas.lower()
-        self.subcanvases.append(subcanvas)
-        subcanvas.show()
-
     def renameNote(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
@@ -245,6 +239,23 @@ class Canvas(QWidget):
                     title = input_dialog.textValue()
                     note_node.setTitle(title)
                 break
+
+    def changeNoteColor(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                current_color = note_node.palette().color(QPalette.ColorRole.Window)
+                color = QColorDialog.getColor(current_color, self)
+                if color.isValid():
+                    note_node.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #2e2e2e;")
+                    break
+
+    def createSubcanvas(self):
+        cursor_pos = QCursor.pos()
+        subcanvas = Subcanvas(parent=self)
+        subcanvas.move(cursor_pos)
+        subcanvas.lower()
+        self.subcanvases.append(subcanvas)
+        subcanvas.show()
 
     def copyActionTriggered(self):
         print("Copy")
