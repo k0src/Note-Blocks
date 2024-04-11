@@ -7,7 +7,6 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QC
 
 # FIX NOTES TOUCHING PROBLEM
 # pin method
-# embed images - delete, bring to front, send to back
 # embed yt
 # embed code
 # embed links
@@ -440,6 +439,12 @@ class Canvas(QWidget):
                 self.title_label.raise_()
                 break
 
+        for image in self.images:
+            if image.underMouse():
+                image.raise_()
+                self.title_label.raise_()
+                break
+
     def sendToBack(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
@@ -454,6 +459,11 @@ class Canvas(QWidget):
         for text_label in self.text_labels:
             if text_label.underMouse():
                 text_label.lower()
+                break
+
+        for image in self.images:
+            if image.underMouse():
+                image.lower()
                 break
 
     def createSubcanvas(self):
@@ -492,6 +502,12 @@ class Canvas(QWidget):
             if text_label.underMouse():
                 text_label.deleteLater()
                 self.text_labels.remove(text_label)
+                return
+            
+        for image in self.images:
+            if image.underMouse():
+                image.deleteLater()
+                self.images.remove(image)
                 return
 
     def editTitle(self):
