@@ -1,7 +1,52 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QInputDialog, QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, QTextEdit, QPushButton
-from PyQt6.QtCore import Qt, QPoint, pyqtSignal
-from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
+from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor
+
+class Subcanvas(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.resize(200, 200)
+        self.setMinimumSize(200, 200)
+        self.setMaximumSize(parent.size())
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: #3b3b3b; border: 2px solid black;")
+        self.resizing = False
+        self.resize_offset = QPoint()
+        self.draggable = False
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            resize_handle_rect = QRect(self.width() - 10, self.height() - 10, 10, 10)
+            if resize_handle_rect.contains(event.pos()):
+                self.resizing = True
+                self.resize_offset = event.pos()
+            else:
+                self.draggable = True
+                self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.resizing:
+            current_width = self.width()
+            current_height = self.height()
+
+            new_width = max(200, current_width + (event.pos().x() - self.resize_offset.x()))
+            new_height = max(200, current_height + (event.pos().y() - self.resize_offset.y()))
+            
+            self.resize(new_width, new_height)
+            
+            self.resize_offset = event.pos()
+            
+        elif self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            if self.resizing:
+                self.resizing = False
+            elif self.draggable:
+                self.draggable = False
 
 class NoteNode(QWidget):
     titleChanged = pyqtSignal(str)
@@ -15,7 +60,6 @@ class NoteNode(QWidget):
         self.offset = QPoint()
         self.text_content = ""
         self.title = ""
-
         self.title_label = QLabel(self.title, self)
         self.title_label.setGeometry(0, 0, self.width(), 25)
         self.title_label.setStyleSheet("color: black;")
@@ -92,11 +136,11 @@ class NoteEditWindow(QDialog):
 class Canvas(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My Web")
+        self.setWindowTitle("My Blocks")
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(layout)
-        self.title_label = QLabel("My Web")
+        self.title_label = QLabel("My Blocks")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
         font.setPointSize(24)
@@ -105,6 +149,7 @@ class Canvas(QWidget):
         self.title_label.setMouseTracking(True)
         self.title_label.installEventFilter(self)
         self.note_nodes = []
+        self.subcanvases = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -114,6 +159,7 @@ class Canvas(QWidget):
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         new_note_action = menu.addAction("New Note")
+        new_subcanvas_action = menu.addAction("New Canvas")
         edit_note_action = menu.addAction("Edit Note")
         rename_note_action = menu.addAction("Rename Note")
 
@@ -129,25 +175,19 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
 
-        delete_action = menu.addAction("Delete Note")
+        delete_action = menu.addAction("Delete")
 
-        edit_note_action.triggered.connect(self.editNote)
         new_note_action.triggered.connect(self.createNewNote)
+        new_subcanvas_action.triggered.connect(self.createSubcanvas)
+        edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
+       
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
         delete_action.triggered.connect(self.deleteActionTriggered)
 
         action = menu.exec(self.mapToGlobal(event.pos()))
-
-    def editNote(self):
-        for note_node in self.note_nodes:
-            if note_node.underMouse():
-                edit_window = NoteEditWindow(note_node, text_content=note_node.text_content, parent=self)
-                edit_window.noteSaved.connect(note_node.setTextContent)
-                edit_window.exec()
-                break
 
     def createNewNote(self):
         cursor_pos = QCursor.pos()
@@ -163,6 +203,22 @@ class Canvas(QWidget):
             note_node.setTitle(title)
             self.note_nodes.append(note_node)
             note_node.show()
+
+    def editNote(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                edit_window = NoteEditWindow(note_node, text_content=note_node.text_content, parent=self)
+                edit_window.noteSaved.connect(note_node.setTextContent)
+                edit_window.exec()
+                break
+
+    def createSubcanvas(self):
+        cursor_pos = QCursor.pos()
+        subcanvas = Subcanvas(parent=self)
+        subcanvas.move(cursor_pos)
+        subcanvas.lower()
+        self.subcanvases.append(subcanvas)
+        subcanvas.show()
 
     def renameNote(self):
         for note_node in self.note_nodes:
@@ -188,11 +244,17 @@ class Canvas(QWidget):
         print("Paste")
 
     def deleteActionTriggered(self):
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                subcanvas.deleteLater()
+                self.subcanvases.remove(subcanvas)
+                return
+
         for note_node in self.note_nodes:
             if note_node.underMouse():
                 note_node.deleteLater()
                 self.note_nodes.remove(note_node)
-                break
+                return  
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
@@ -215,7 +277,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.canvas = Canvas()
         self.setCentralWidget(self.canvas)
-        self.setWindowTitle("Mind Web v0.1")
+        self.setWindowTitle("Note Blocks v0.1")
 
         file_menu = self.menuBar().addMenu("&File")
 
