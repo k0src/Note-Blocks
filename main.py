@@ -207,6 +207,47 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.canvas)
         self.setWindowTitle("Mind Web v0.1")
 
+        file_menu = self.menuBar().addMenu("&File")
+
+        new_action = QAction("&New", self)
+        open_action = QAction("&Open", self)
+        save_action = QAction("&Save", self)
+        save_as_action = QAction("Save &As", self)
+
+        separator = QAction(self)
+        separator.setSeparator(True)
+        file_menu.addAction(separator)
+
+        exit_action = QAction("&Exit", self)
+
+        file_menu.addAction(new_action)
+        file_menu.addAction(open_action)
+        file_menu.addAction(save_action)
+        file_menu.addAction(save_as_action)
+        file_menu.addSeparator()
+        file_menu.addAction(exit_action)
+
+        new_action.triggered.connect(self.newFile)
+        open_action.triggered.connect(self.openFile)
+        save_action.triggered.connect(self.saveFile)
+        save_as_action.triggered.connect(self.saveAsFile)
+        exit_action.triggered.connect(self.exitApp)
+
+    def newFile(self):
+        print("New")
+
+    def openFile(self):
+        print("Open")
+
+    def saveFile(self):
+        print("Save")
+
+    def saveAsFile(self):
+        print("Save As")
+
+    def exitApp(self):
+        QApplication.quit()
+
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
