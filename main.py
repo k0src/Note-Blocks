@@ -8,7 +8,7 @@ class NoteNode(QWidget):
         super().__init__(parent)
         self.setFixedSize(100, 120)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: gray; border: 2px solid black;")
+        self.setStyleSheet("background-color: #858585; border: 2px solid black;")
         self.draggable = False
         self.offset = QPoint()
 
@@ -40,6 +40,7 @@ class Canvas(QWidget):
         layout.addWidget(self.title_label)
         self.title_label.setMouseTracking(True)
         self.title_label.installEventFilter(self)
+        self.note_nodes = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -58,12 +59,17 @@ class Canvas(QWidget):
         cut_action = menu.addAction("Cut")
         paste_action = menu.addAction("Paste")
 
-        
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+
+        delete_action = menu.addAction("Delete Note")
 
         new_note_action.triggered.connect(self.createNewNote)
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
+        delete_action.triggered.connect(self.deleteActionTriggered)
 
         action = menu.exec(self.mapToGlobal(event.pos()))
 
@@ -71,6 +77,7 @@ class Canvas(QWidget):
         cursor_pos = QCursor.pos()
         note_node = NoteNode(self)
         note_node.move(cursor_pos)
+        self.note_nodes.append(note_node)
         note_node.show()
 
     def copyActionTriggered(self):
@@ -81,6 +88,13 @@ class Canvas(QWidget):
 
     def pasteActionTriggered(self):
         print("Paste")
+
+    def deleteActionTriggered(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                note_node.deleteLater()
+                self.note_nodes.remove(note_node)
+                break
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
