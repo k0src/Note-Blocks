@@ -44,18 +44,6 @@ class Subcanvas(QWidget):
         self.resize_offset = QPoint()
         self.draggable = False
 
-        self.color_picker_widget = QWidget(self)
-        self.color_picker_widget.setGeometry(self.width() - 195, 5, 15, 15)
-        self.color_picker_widget.setStyleSheet("background-color: #7d7d7d; border: 2px solid black; border-color: #212121;")
-        self.color_picker_widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-
-        self.color_picker_widget.mousePressEvent = self.openColorPicker
-
-    def openColorPicker(self, event):
-        color = QColorDialog.getColor(self.palette().color(QPalette.ColorRole.Window), self)
-        if color.isValid():
-            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
-
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             resize_handle_rect = QRect(self.width() - 10, self.height() - 10, 10, 10)
@@ -209,7 +197,7 @@ class Canvas(QWidget):
         menu.addAction(separator)
 
         edit_note_action = menu.addAction("Edit")
-        note_color_action = menu.addAction("Note Color")
+        note_color_action = menu.addAction("Change Color")
         rename_note_action = menu.addAction("Rename")
 
         separator = QAction(self)
@@ -226,6 +214,13 @@ class Canvas(QWidget):
 
         delete_action = menu.addAction("Delete")
 
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+
+        bring_to_front_action = menu.addAction("Bring to Front")
+        send_to_back_action = menu.addAction("Send to Back")
+
         new_note_action.triggered.connect(self.createNewNote)
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
         new_text_label_action.triggered.connect(self.createNewTextLabel)
@@ -238,6 +233,9 @@ class Canvas(QWidget):
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
         delete_action.triggered.connect(self.deleteActionTriggered)
+
+        bring_to_front_action.triggered.connect(self.bringToFront)
+        send_to_back_action.triggered.connect(self.sendToBack)
 
         action = menu.exec(self.mapToGlobal(event.pos()))
 
@@ -317,6 +315,46 @@ class Canvas(QWidget):
                 if color.isValid():
                     note_node.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
                     break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                current_color = subcanvas.palette().color(QPalette.ColorRole.Window)
+                color = QColorDialog.getColor(current_color, self)
+                if color.isValid():
+                    subcanvas.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
+                    break
+
+    def bringToFront(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                note_node.raise_()
+                break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                subcanvas.raise_()
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                text_label.raise_()
+                break
+
+    def sendToBack(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                note_node.lower()
+                break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                subcanvas.lower()
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                text_label.lower()
+                break
 
     def createSubcanvas(self):
         cursor_pos = QCursor.pos()
