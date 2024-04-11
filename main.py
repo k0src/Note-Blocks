@@ -324,6 +324,14 @@ class Canvas(QWidget):
                     subcanvas.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
                     break
 
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                current_color = text_label.palette().color(QPalette.ColorRole.Window)
+                color = QColorDialog.getColor(current_color, self)
+                if color.isValid():
+                    text_label.label.setStyleSheet(f"color: {color.name()};")
+                    break
+
     def bringToFront(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
