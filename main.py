@@ -10,14 +10,14 @@ class Subcanvas(QWidget):
         self.setMinimumSize(200, 200)
         self.setMaximumSize(parent.size())
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #4e6159; border: 2px solid black; border-color: #2e2e2e;")
+        self.setStyleSheet("background-color: #4e6159; border: 2px solid black; border-color: #212121;")
         self.resizing = False
         self.resize_offset = QPoint()
         self.draggable = False
 
         self.color_picker_widget = QWidget(self)
         self.color_picker_widget.setGeometry(self.width() - 195, 5, 15, 15)
-        self.color_picker_widget.setStyleSheet("background-color: white; border: 2px solid black; border-color: #2e2e2e;")
+        self.color_picker_widget.setStyleSheet("background-color: #7d7d7d; border: 2px solid black; border-color: #212121;")
         self.color_picker_widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
         self.color_picker_widget.mousePressEvent = self.openColorPicker
@@ -25,7 +25,7 @@ class Subcanvas(QWidget):
     def openColorPicker(self, event):
         color = QColorDialog.getColor(self.palette().color(QPalette.ColorRole.Window), self)
         if color.isValid():
-            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #2e2e2e;")
+            self.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -67,7 +67,7 @@ class NoteNode(QWidget):
         super().__init__(parent)
         self.setFixedSize(100, 120)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #4e5661; border: 2px solid black; border-color: #2e2e2e;")
+        self.setStyleSheet("background-color: #4e5661; border: 2px solid black; border-color: #212121;")
         self.draggable = False
         self.offset = QPoint()
         self.text_content = ""
@@ -155,7 +155,8 @@ class Canvas(QWidget):
         self.title_label = QLabel("My Notes")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
-        font.setPointSize(24)
+        font.setPointSize(20)
+        self.setStyleSheet("color: #c7c7c7;")
         self.title_label.setFont(font)
         layout.addWidget(self.title_label)
         self.title_label.setMouseTracking(True)
@@ -246,7 +247,7 @@ class Canvas(QWidget):
                 current_color = note_node.palette().color(QPalette.ColorRole.Window)
                 color = QColorDialog.getColor(current_color, self)
                 if color.isValid():
-                    note_node.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #2e2e2e;")
+                    note_node.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
                     break
 
     def createSubcanvas(self):
@@ -282,8 +283,8 @@ class Canvas(QWidget):
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
         self.title_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_edit.setStyleSheet("font-size: 24px;")
-        self.title_edit.setFixedHeight(40)
+        self.title_edit.setStyleSheet("font-size: 20px;")
+        self.title_edit.setFixedHeight(35)
         self.title_edit.returnPressed.connect(self.updateTitle)
         self.layout().replaceWidget(self.title_label, self.title_edit)
         self.title_edit.selectAll()
