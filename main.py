@@ -3,6 +3,35 @@ from PyQt6.QtWidgets import QApplication, QInputDialog, QColorDialog, QSizePolic
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
 from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette
 
+class MovableTextLabel(QWidget):
+    def __init__(self, text="", parent=None):
+        super().__init__(parent)
+        self.label = QLabel(text, self)
+        self.label.setStyleSheet("color: #c7c7c7;")
+        font = self.label.font()
+        font.setPointSize(18)
+        self.label.setFont(font)
+        self.draggable = False
+        self.offset = QPoint()
+        self.label.adjustSize()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = True
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = False
+
+    def setText(self, text):
+        self.label.setText(text)
+        self.label.adjustSize()
+
 class Subcanvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -51,7 +80,6 @@ class Subcanvas(QWidget):
             
         elif self.draggable:
             self.move(self.mapToParent(event.pos() - self.offset))
-
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -163,6 +191,7 @@ class Canvas(QWidget):
         self.title_label.installEventFilter(self)
         self.note_nodes = []
         self.subcanvases = []
+        self.text_labels = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -173,6 +202,12 @@ class Canvas(QWidget):
         menu = QMenu(self)
         new_note_action = menu.addAction("New Note")
         new_subcanvas_action = menu.addAction("New Canvas")
+        new_text_label_action = menu.addAction("New Text Label")
+
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+
         edit_note_action = menu.addAction("Edit Note")
         rename_note_action = menu.addAction("Rename Note")
         note_color_action = menu.addAction("Note Color")
@@ -193,6 +228,8 @@ class Canvas(QWidget):
 
         new_note_action.triggered.connect(self.createNewNote)
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
+        new_text_label_action.triggered.connect(self.createNewTextLabel)
+
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
         note_color_action.triggered.connect(self.changeNoteColor)
@@ -219,6 +256,21 @@ class Canvas(QWidget):
             note_node.setTitle(title)
             self.note_nodes.append(note_node)
             note_node.show()
+
+    def createNewTextLabel(self):
+        cursor_pos = QCursor.pos()
+        input_dialog = QInputDialog(self)
+        input_dialog.setWindowTitle("New Text Label")
+        input_dialog.setLabelText("Enter Text:")
+        input_dialog.resize(300 , 100)
+        input_dialog.move(cursor_pos)
+        ok = input_dialog.exec()
+        if ok:
+            text_label = MovableTextLabel(input_dialog.textValue(), self)
+            text_label.move(cursor_pos)
+            self.text_labels.append(text_label)
+            text_label.adjustSize()
+            text_label.show()
 
     def editNote(self):
         for note_node in self.note_nodes:
@@ -280,6 +332,12 @@ class Canvas(QWidget):
                 note_node.deleteLater()
                 self.note_nodes.remove(note_node)
                 return  
+            
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                text_label.deleteLater()
+                self.text_labels.remove(text_label)
+                return
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
