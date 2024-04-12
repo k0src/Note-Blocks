@@ -92,7 +92,7 @@ class SearchBar(QWidget):
             self.setFixedHeight(100 + num_lines * 20)
 
             self.results_label.show()
-            self.fade_timer.start(1000)
+            self.fade_timer.start(2500)
 
     def hide_results_label(self):
         self.results_label.hide()
