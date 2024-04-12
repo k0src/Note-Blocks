@@ -1,9 +1,11 @@
 import sys
+import random
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
-from PyQt6.QtGui import QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette, QPixmap
+from PyQt6.QtGui import (QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette, 
+                         QPixmap, QPainterPath)
 
 # FIX NOTES TOUCHING PROBLEM
 # pin method
@@ -85,11 +87,11 @@ class MovableTextLabel(QWidget):
 class Subcanvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.resize(200, 200)
-        self.setMinimumSize(200, 200)
+        self.resize(225, 225)
+        self.setMinimumSize(225, 225)
         self.setMaximumSize(parent.size())
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #4e6159; border: 2px solid black; border-color: #212121;")
+        self.setStyleSheet("background-color: #454852; border: 2px solid black; border-color: #212121;")
         self.resizing = False
         self.resize_offset = QPoint()
         self.draggable = False
@@ -131,7 +133,8 @@ class NoteNode(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(100, 120)
+        self.setFixedSize(125, 150)
+        self.setMinimumSize(125, 150)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet("background-color: #4e5661; border: 2px solid black; border-color: #212121;")
         self.draggable = False
@@ -142,6 +145,10 @@ class NoteNode(QWidget):
         self.title_label = QLabel(self.title, self)
         self.title_label.setGeometry(0, 0, self.width(), 25)
         self.title_label.setStyleSheet("color: black;")
+
+        self.line_lengths = []
+        for _ in range(7):
+            self.line_lengths.append(random.randint(35, 105))
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -169,6 +176,19 @@ class NoteNode(QWidget):
         super().paintEvent(event)
         painter = QPainter(self)
         painter.drawText(10, 20, self.title)
+
+        pen = QPen(QColor("#212121")) 
+        pen.setWidth(2)
+        painter.setPen(pen)
+        
+        line_spacing = 15
+        start_x = 10
+        start_y = 41
+        
+        current_y = start_y
+        for length in self.line_lengths:
+            painter.drawLine(start_x, current_y, start_x + length, current_y)
+            current_y += line_spacing
 
 class NoteEditWindow(QDialog):
     noteSaved = pyqtSignal(str)
@@ -319,7 +339,7 @@ class Canvas(QWidget):
         input_dialog = QInputDialog(self)
         input_dialog.setWindowTitle("New Note")
         input_dialog.setLabelText("Enter Note Name:")
-        input_dialog.resize(300 , 100)
+        input_dialog.resize(300, 100)
         input_dialog.move(cursor_pos)
         ok = input_dialog.exec()
         if ok:
@@ -336,7 +356,7 @@ class Canvas(QWidget):
         input_dialog = QInputDialog(self)
         input_dialog.setWindowTitle("New Text Label")
         input_dialog.setLabelText("Enter Text:")
-        input_dialog.resize(300 , 100)
+        input_dialog.resize(300, 100)
         input_dialog.move(cursor_pos)
         ok = input_dialog.exec()
         if ok:
@@ -373,7 +393,7 @@ class Canvas(QWidget):
                 input_dialog = QInputDialog(self)
                 input_dialog.setWindowTitle("Rename Note")
                 input_dialog.setLabelText("Enter Note Name:")
-                input_dialog.resize(300 , 100)
+                input_dialog.resize(300, 100)
                 input_dialog.move(cursor_pos)
                 ok = input_dialog.exec()
                 if ok:
