@@ -1362,6 +1362,16 @@ class MainWindow(QMainWindow):
         save_as_action.triggered.connect(self.saveAsFile)
         exit_action.triggered.connect(self.exitApp)
 
+        help_menu = self.menuBar().addMenu("&Help")
+
+        about_action = QAction("&About", self)
+        tutorail_action = QAction("&Tutorial", self)
+        help_menu.addAction(about_action)
+        help_menu.addAction(tutorail_action)
+
+        about_action.triggered.connect(self.about)
+        tutorail_action.triggered.connect(self.tutorial)
+
     def newFile(self):
         print("New")
 
@@ -1376,6 +1386,12 @@ class MainWindow(QMainWindow):
 
     def exitApp(self):
         QApplication.quit()
+
+    def about(self):
+        print("About")
+    
+    def tutorial(self):
+        print("Tutorial")
 
 def main():
     app = QApplication(sys.argv)
