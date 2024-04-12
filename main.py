@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWind
                              QPlainTextEdit)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl, QTimer
 from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
-from PyQt6.QtMultimedia import QMediaPlayer
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 # FIX NOTES TOUCHING PROBLEM
 # FIX TEXT SIZING PROBLEM
@@ -71,19 +71,19 @@ class SearchBar(QWidget):
             found_items = []
             for item in canvas.note_nodes:
                 if search_term.lower() in item.title.lower():
-                    found_items.append(f"Found: {item.title} in {item}")
+                    found_items.append(f"Found note '{item.title}' in canvas")
             for item in canvas.text_labels:
                 if search_term.lower() in item.label.text().lower():
-                    found_items.append(f"Found: {item.label.text()} in {item}")
+                    found_items.append(f"Found label '{item.label.text()}' in canvas")
             for item in canvas.images:
                 if search_term.lower() in item.filename.lower():
-                    found_items.append(f"Found: {item.filename} in {item}")
+                    found_items.append(f"Found image '{item.filename}' in canvas")
             for item in canvas.audio_files:
                 if search_term.lower() in item.filename.lower():
-                    found_items.append(f"Found: {item.filename} in {item}")
+                    found_items.append(f"Found audio file '{item.filename}' in canvas")
             for item in Sticky.stickies:
                 if search_term.lower() in item.plain_text_content.lower():
-                    found_items.append(f"Found: {item.plain_text_content} in {item}")
+                    found_items.append(f"Found sticky '{item.plain_text_content}' in canvas")
 
             results_text = '\n'.join(found_items)
             self.results_label.setText(results_text)
@@ -144,6 +144,7 @@ class AudioWidget(QWidget):
         self.play_button = QPushButton("Play", self)
         self.play_button.setMaximumWidth(50)
 
+
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Bold.ttf")
 
         if font_id != -1:
@@ -163,6 +164,8 @@ class AudioWidget(QWidget):
         self.setLayout(layout)
         
         self.audio_player = QMediaPlayer()
+        self.audioOutput = QAudioOutput()
+        self.audio_player.setAudioOutput(self.audioOutput)
         self.audio_playing = False
 
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
