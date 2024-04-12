@@ -11,12 +11,12 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalett
 # FIX TEXT SIZING PROBLEM
 
 # pin method
-# embed code (chnage name to sticky) - delete, opacity, move forward/backward
+# embed code (chnage name to sticky) - 
 # embed links
 # Embed files
 # Save/open
-# DEFUALT GLOBAl fonts
-# ADD STICKY CONTEXT MENU
+
+# ADD STICKY CONTEXT MENU delete, opacity, move forward/backward - and raise title
 
 class Sticky(QPlainTextEdit):
     def __init__(self, parent=None):
@@ -389,7 +389,7 @@ class Canvas(QWidget):
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
             font = QFont(font_family)
-            font.setPointSize(20)
+            font.setPointSize(22)
             self.title_label.setFont(font)
         else:
             print("Font not found")
@@ -424,6 +424,7 @@ class Canvas(QWidget):
         note_color_action = menu.addAction("Change Color")
         rename_note_action = menu.addAction("Rename")
         change_opacity_action = menu.addAction("Change Opacity")
+        change_label_font_size = menu.addAction("Change Font Size")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -455,6 +456,7 @@ class Canvas(QWidget):
         rename_note_action.triggered.connect(self.renameNote)
         note_color_action.triggered.connect(self.changeNoteColor)
         change_opacity_action.triggered.connect(self.changeOpacity)
+        change_label_font_size.triggered.connect(self.changeLabelFontSize)
        
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
@@ -662,6 +664,28 @@ class Canvas(QWidget):
                     except ValueError:
                         break
                     break
+                break
+
+    def changeLabelFontSize(self):
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Font Size")
+                input_dialog.setLabelText("Font Size (5-75):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        font_size = int(input_dialog.textValue())
+                        if font_size < 5 or font_size > 75:
+                            font_size = 18
+                        font = text_label.label.font()
+                        font.setPointSize(font_size)
+                        text_label.label.setFont(font)
+                    except ValueError:
+                        break
                 break
 
     def bringToFront(self):
