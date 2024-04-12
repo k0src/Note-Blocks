@@ -138,6 +138,7 @@ class AudioWidget(QWidget):
         self.play_button = QPushButton("Play", self)
         self.play_button.setMaximumWidth(50)
 
+        self.prev_color = None
 
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Bold.ttf")
 
@@ -409,6 +410,8 @@ class Subcanvas(QWidget):
         shadow_effect.setOffset(3, 3)
 
         self.setGraphicsEffect(shadow_effect)
+
+        self.prev_color = None
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1125,8 +1128,11 @@ class Canvas(QWidget):
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
                 if subcanvas.isEnabled():
+                    subcanvas.prev_color = subcanvas.palette().color(QPalette.ColorRole.Window)
+                    subcanvas.setStyleSheet("background-color: #3b3b3b; border: 2px solid black; border-color: #212121;")
                     subcanvas.setDisabled(True)
                 else:
+                    subcanvas.setStyleSheet(f"background-color: {subcanvas.prev_color.name()}; border: 2px solid black; border-color: #212121;")
                     subcanvas.setDisabled(False)
                 break
         
@@ -1149,8 +1155,11 @@ class Canvas(QWidget):
         for audio_file in self.audio_files:
             if audio_file.underMouse():
                 if audio_file.isEnabled():
+                    audio_file.prev_color = audio_file.palette().color(QPalette.ColorRole.Window)
+                    audio_file.setStyleSheet("background-color: #3b3b3b; border: 2px solid black; border-color: #212121;")
                     audio_file.setDisabled(True)
                 else:
+                    audio_file.setStyleSheet(f"background-color: {audio_file.prev_color.name()}; border: 2px solid black; border-color: #212121;")
                     audio_file.setDisabled(False)
                 break
         
