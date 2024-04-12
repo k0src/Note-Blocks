@@ -18,7 +18,6 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 # lock widgets
 # table
 
-
 # Save/open - json
 
 class SearchBar(QWidget):
@@ -696,6 +695,12 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
 
+        self.lock_action = menu.addAction("Disable &Widget")
+
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+
         arrange_submenu = menu.addMenu("Arrange")
 
         bring_to_front_action = arrange_submenu.addAction("Move &Forward")
@@ -706,6 +711,7 @@ class Canvas(QWidget):
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
+
         delete_action = menu.addAction("&Delete")
         delete_all_action = menu.addAction("Clear All")
 
@@ -728,6 +734,8 @@ class Canvas(QWidget):
         paste_action.triggered.connect(self.pasteActionTriggered)
         delete_action.triggered.connect(self.deleteActionTriggered)
         delete_all_action.triggered.connect(self.deleteAll)
+
+        self.lock_action.triggered.connect(self.lockWidget)
 
         bring_to_front_action.triggered.connect(self.bringToFront)
         send_to_back_action.triggered.connect(self.sendToBack)
@@ -1095,8 +1103,58 @@ class Canvas(QWidget):
                         font = text_label.label.font()
                         font.setPointSize(font_size)
                         text_label.label.setFont(font)
+                        text_label.adjustSize()
                     except ValueError:
                         break
+                break
+
+    def lockWidget(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                if note_node.isEnabled():
+                    note_node.setDisabled(True)
+                else:
+                    note_node.setDisabled(False)
+                break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                if subcanvas.isEnabled():
+                    subcanvas.setDisabled(True)
+                else:
+                    subcanvas.setDisabled(False)
+                break
+        
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                if text_label.isEnabled():
+                    text_label.setDisabled(True)
+                else:
+                    text_label.setDisabled(False)
+                break
+        
+        for image in self.images:
+            if image.underMouse():
+                if image.isEnabled():
+                    image.setDisabled(True)
+                else:
+                    image.setDisabled(False)
+                break
+        
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                if audio_file.isEnabled():
+                    audio_file.setDisabled(True)
+                else:
+                    audio_file.setDisabled(False)
+                break
+        
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                if search_bar.isEnabled():
+                    search_bar.setDisabled(True)
+                else:
+                    search_bar.setDisabled(False)
                 break
 
     def bringToFront(self):
