@@ -140,7 +140,7 @@ class AudioWidget(QWidget):
 
         self.prev_color = None
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Bold.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Bold.ttf")
 
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -163,7 +163,7 @@ class AudioWidget(QWidget):
         self.audio_player.setAudioOutput(self.audioOutput)
         self.audio_playing = False
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Medium.ttf")
 
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -218,7 +218,7 @@ class Sticky(QPlainTextEdit):
 
         self.plain_text_content = ""
 
-        font_id = QFontDatabase.addApplicationFont("fonts/FiraCode-Medium.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/FiraCode-Medium.ttf")
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
             font = QFont(font_family)
@@ -378,7 +378,7 @@ class MovableTextLabel(QWidget):
         self.label = QLabel(text, self)
         self.label.setStyleSheet("color: #c7c7c7;")
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Medium.ttf")
 
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -481,7 +481,7 @@ class NoteNode(QWidget):
 
         self.prev_color = None
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-ExtraLight.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-ExtraLight.ttf")
 
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -566,7 +566,7 @@ class NoteEditWindow(QDialog):
         
         self.title_label = QLabel("")
 
-        title_font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Light.ttf")
+        title_font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Light.ttf")
 
         if title_font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(title_font_id)[0]
@@ -578,7 +578,7 @@ class NoteEditWindow(QDialog):
 
         layout.addWidget(self.title_label)
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Medium.ttf")
 
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -640,7 +640,7 @@ class NoteEditWindow(QDialog):
 class Canvas(QWidget):
     def __init__(self):
         super().__init__()
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+        font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Medium.ttf")
 
         self.has_search_bar = False
 
@@ -1504,7 +1504,7 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
 
-    font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+    font_id = QFontDatabase.addApplicationFont("/home/k0/Documents/python/notes/fonts/Poppins-Medium.ttf")
 
     if font_id != -1:
         font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
