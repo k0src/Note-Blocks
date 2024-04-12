@@ -1,6 +1,8 @@
 import sys
 import os
 import random
+import json
+
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
@@ -14,9 +16,7 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 # FIX NOTES TOUCHING PROBLEM **
 # FIX WEIRD MOUSE POS PROBLEM
 # Arrange problem
-
-# lock widgets
-# table
+# Cut/copy/paste
 
 # Save/open - json
 
