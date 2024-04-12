@@ -1,6 +1,6 @@
 # Note Blocks
 
-![img]("https://i.ibb.co/F3bjjYL/Screenshot-from-2024-04-12-16-33-21.png")
+![img](/assets/1.png)
 
 ## Multimedia Workspace Note-taking App
 
