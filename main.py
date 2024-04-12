@@ -23,8 +23,8 @@ from PyQt6.QtMultimedia import QMediaPlayer
 
 # embed links - html embed
 # Save/open - json
-# delete / delete all , arrange search bars
-# search - note names, image file names, audio file names, text labels, stickies text
+
+
 
 class SearchBar(QWidget):
     def __init__(self, parent=None):
@@ -60,9 +60,21 @@ class SearchBar(QWidget):
         search_term = self.search_input.text()
         if search_term:
             canvas = self.parent()
-            for item in canvas.note_nodes + canvas.subcanvases + canvas.text_labels + canvas.images:
-                if search_term.lower() in item.text().lower():
-                    print(f"Found: {item.text()}")
+            for item in canvas.note_nodes:
+                if search_term.lower() in item.title.lower():
+                    print(f"Found: {item.title}")
+            for item in canvas.text_labels:
+                if search_term.lower() in item.label.text().lower():
+                    print(f"Found: {item.label.text()}")
+            for item in canvas.images:
+                if search_term.lower() in item.filename.lower():
+                    print(f"Found: {item.filename}")
+            for item in canvas.audio_files:
+                if search_term.lower() in item.filename.lower():
+                    print(f"Found: {item.filename}")
+            for item in Sticky.stickies:
+                if search_term.lower() in item.plain_text_content.lower():
+                    print(f"Found: {item.plain_text_content}")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -101,6 +113,7 @@ class AudioWidget(QWidget):
         self.setGraphicsEffect(shadow_effect)
 
         filename = os.path.basename(file_path)
+        self.filename = filename
 
         self.audio_label = QLabel(self)
         self.audio_label.setText(filename)
@@ -184,6 +197,8 @@ class Sticky(QPlainTextEdit):
         super().__init__(parent)
         self.canvas_title_label = canvas_title_label
 
+        self.plain_text_content = ""
+
         font_id = QFontDatabase.addApplicationFont("fonts/FiraCode-Medium.ttf")
         if font_id != -1:
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
@@ -209,6 +224,9 @@ class Sticky(QPlainTextEdit):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+    def updateTextContent(self):
+        self.plain_text_content = self.toPlainText()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -264,12 +282,14 @@ class Sticky(QPlainTextEdit):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.clearFocus()
+            self.updateTextContent()
         else:
             super().keyPressEvent(event)
 
 class ImageWidget(QWidget):
-    def __init__(self, pixmap, parent=None):
+    def __init__(self, pixmap, filename, parent=None):
         super().__init__(parent)
+        self.filename = filename
         self.original_pixmap = pixmap
         self.aspect_ratio = pixmap.width() / pixmap.height()
 
@@ -717,8 +737,9 @@ class Canvas(QWidget):
         cursor_pos = QCursor.pos()
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Image Files (*.png *.jpg *.bmp)")
         if file_path:
+            filename = os.path.basename(file_path)
             pixmap = QPixmap(file_path)
-            image_widget = ImageWidget(pixmap, self)
+            image_widget = ImageWidget(pixmap, filename, self)
             self.images.append(image_widget)
             image_widget.move(cursor_pos)
             image_widget.show()
