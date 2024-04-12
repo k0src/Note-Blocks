@@ -14,22 +14,22 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 # FIX NOTES TOUCHING PROBLEM
 # FIX TEXT SIZING PROBLEM
 # FIX WEIRD MOUSE POS PROBLEM
-# FIX QMEDIA PLAYER PROBLEM
+# Arrange problem
 
 # lock widgets
-# first time tutorial
 # table
-# Search
 # calendar
+# clock
+# Double clikc rename text label
+# Save size of note edit wiondwo
 
-# embed links - html embed
 # Save/open - json
 
 class SearchBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Search Bar")
-        self.resize(200, 100)
+        self.resize(300, 100)
         self.results_height = 0
         
         layout = QVBoxLayout()
@@ -651,6 +651,9 @@ class Canvas(QWidget):
         if obj in self.note_nodes and event.type() == event.Type.MouseButtonDblClick:
             self.editNote()
             return True
+        if obj in self.text_labels and event.type() == event.Type.MouseButtonDblClick:
+            self.renameNote()
+            return True
         return super().eventFilter(obj, event)
 
     def contextMenuEvent(self, event):
@@ -742,11 +745,8 @@ class Canvas(QWidget):
             note_node = NoteNode(self)
             note_node.move(cursor_pos)
             note_node.setTitle(title)
+            note_node.installEventFilter(self)
             self.note_nodes.append(note_node)
-
-            for note in self.note_nodes:
-                note.installEventFilter(self)
-
             note_node.show()
             self.title_label.raise_()
 
@@ -761,8 +761,9 @@ class Canvas(QWidget):
         if ok:
             text_label = MovableTextLabel(input_dialog.textValue(), self)
             text_label.move(cursor_pos)
-            self.text_labels.append(text_label)
             text_label.adjustSize()
+            text_label.installEventFilter(self)
+            self.text_labels.append(text_label)
             text_label.show()
             self.title_label.raise_()
 
@@ -866,6 +867,7 @@ class Canvas(QWidget):
                 if ok:
                     new_text = input_dialog.textValue()
                     text_label.setText(new_text)
+                    text_label.adjustSize()
                 break
 
         for audio_file in self.audio_files:
