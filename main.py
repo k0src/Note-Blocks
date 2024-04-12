@@ -438,11 +438,14 @@ class Canvas(QWidget):
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        new_note_action = menu.addAction("New Note")
-        new_text_label_action = menu.addAction("New Text Label")
-        new_image_action = menu.addAction("New Image")
-        new_subcanvas_action = menu.addAction("New Block")
-        new_sticky = menu.addAction("New Sticky")
+
+        new_submenu = menu.addMenu("New")
+
+        new_note_action = new_submenu.addAction("New Note")
+        new_text_label_action = new_submenu.addAction("New Text Label")
+        new_image_action = new_submenu.addAction("New Image")
+        new_subcanvas_action = new_submenu.addAction("New Block")
+        new_sticky = new_submenu.addAction("New Sticky")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -466,8 +469,12 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
 
-        bring_to_front_action = menu.addAction("Move Foward")
-        send_to_back_action = menu.addAction("Move Backwards")
+        arrange_submenu = menu.addMenu("Arrange")
+
+        bring_to_front_action = arrange_submenu.addAction("Move Forward")
+        send_to_back_action = arrange_submenu.addAction("Move Backward")
+        all_the_way_to_front = arrange_submenu.addAction("Move to Front")
+        all_the_way_to_back = arrange_submenu.addAction("Move to Back")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -493,6 +500,8 @@ class Canvas(QWidget):
 
         bring_to_front_action.triggered.connect(self.bringToFront)
         send_to_back_action.triggered.connect(self.sendToBack)
+        all_the_way_to_front.triggered.connect(self.all_the_way_to_front)
+        all_the_way_to_back.triggered.connect(self.all_the_way_to_back)
 
         action = menu.exec(self.mapToGlobal(event.pos()))
 
@@ -763,6 +772,60 @@ class Canvas(QWidget):
                 image.lower()
                 break
 
+    def all_the_way_to_front(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    note_node.raise_()
+                self.title_label.raise_()
+                break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    subcanvas.raise_()
+                self.title_label.raise_()
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    text_label.raise_()
+                self.title_label.raise_()
+                break
+
+        for image in self.images:
+            if image.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    image.raise_()
+                self.title_label.raise_()
+                break
+
+    def all_the_way_to_back(self):
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    note_node.lower()
+                break
+
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    subcanvas.lower()
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    text_label.lower()
+                break
+
+        for image in self.images:
+            if image.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                    image.lower()
+                break
+
     def createSubcanvas(self):
         cursor_pos = QCursor.pos()
         subcanvas = Subcanvas(parent=self)
@@ -811,7 +874,7 @@ class Canvas(QWidget):
         self.title_edit = QLineEdit(self.title_label.text())
         self.title_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_edit.setStyleSheet("font-size: 20px;")
-        self.title_edit.setFixedHeight(35)
+        self.title_edit.setFixedHeight(40)
         self.title_edit.returnPressed.connect(self.updateTitle)
         self.layout().replaceWidget(self.title_label, self.title_edit)
         self.title_edit.selectAll()
