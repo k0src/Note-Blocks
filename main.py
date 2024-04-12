@@ -6,22 +6,18 @@ from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWind
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
                              QGraphicsDropShadowEffect, QGraphicsOpacityEffect, 
                              QPlainTextEdit)
-from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl, QTimer
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl, QTimer, QSize
 from PyQt6.QtGui import (QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, 
                          QFontDatabase, QDesktopServices)
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
-# FIX NOTES TOUCHING PROBLEM
-# FIX TEXT SIZING PROBLEM
+# FIX NOTES TOUCHING PROBLEM **
 # FIX WEIRD MOUSE POS PROBLEM
 # Arrange problem
 
 # lock widgets
 # table
-# calendar
-# clock
-# Double clikc rename text label
-# Save size of note edit wiondwo
+
 
 # Save/open - json
 
@@ -462,6 +458,7 @@ class NoteNode(QWidget):
         self.markdown_content = ""
         self.title = ""
         self.title_label = QLabel(self.title, self)
+        self.edit_window_size = None
 
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-ExtraLight.ttf")
 
@@ -509,6 +506,9 @@ class NoteNode(QWidget):
         self.titleChanged.emit(title)
         self.update()
 
+    def setSize(self, edit_window_size):
+        self.edit_window_size = edit_window_size
+
     def paintEvent(self, event):
         super().paintEvent(event)
         painter = QPainter(self)
@@ -529,11 +529,14 @@ class NoteNode(QWidget):
 
 class NoteEditWindow(QDialog):
     noteSaved = pyqtSignal(str)
+    sizeSaved = pyqtSignal(QSize)
 
-    def __init__(self, note_node, plain_text_content, parent=None):
+    def __init__(self, note_node, plain_text_content, edit_window_size=None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit Note")
-        self.resize(500, 600)
+        if edit_window_size is None:
+            edit_window_size = QSize(500, 600)
+        self.resize(edit_window_size)
         self.note_node = note_node
         self.plain_text_content = plain_text_content
         self.markdown_content = ""
@@ -610,6 +613,7 @@ class NoteEditWindow(QDialog):
     def saveNote(self):
         self.plain_text_content = self.editor.toPlainText()
         self.noteSaved.emit(self.plain_text_content)
+        self.sizeSaved.emit(self.size())
         self.close()
 
 class Canvas(QWidget):
@@ -820,8 +824,14 @@ class Canvas(QWidget):
     def editNote(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                edit_window = NoteEditWindow(note_node, plain_text_content=note_node.plain_text_content, parent=self)
+                edit_window = NoteEditWindow(
+                    note_node,
+                    plain_text_content=note_node.plain_text_content,
+                    edit_window_size=note_node.edit_window_size,
+                    parent=self,
+                )
                 edit_window.noteSaved.connect(note_node.setTextContent)
+                edit_window.sizeSaved.connect(note_node.setSize)
                 edit_window.exec()
                 break
 
