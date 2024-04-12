@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWind
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
                              QGraphicsDropShadowEffect, QGraphicsOpacityEffect, 
                              QPlainTextEdit)
-from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl, QTimer
 from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
 from PyQt6.QtMultimedia import QMediaPlayer
 
@@ -24,11 +24,14 @@ from PyQt6.QtMultimedia import QMediaPlayer
 # embed links - html embed
 # Save/open - json
 
+# DELETE ARRANGE SERACH BAR
+
 class SearchBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Search Bar")
-        self.resize(200, 80)
+        self.resize(200, 100)
+        self.results_height = 0
         
         layout = QVBoxLayout()
 
@@ -52,27 +55,47 @@ class SearchBar(QWidget):
 
         layout.addLayout(button_layout)
 
+        self.results_label = QLabel()
+        layout.addWidget(self.results_label)
+
         self.setLayout(layout)
+        
+        self.results_label.hide()
+        self.fade_timer = QTimer(self)
+        self.fade_timer.timeout.connect(self.hide_results_label)
 
     def search(self):
         search_term = self.search_input.text()
         if search_term:
             canvas = self.parent()
+            found_items = []
             for item in canvas.note_nodes:
                 if search_term.lower() in item.title.lower():
-                    print(f"Found: {item.title} in {item}")
+                    found_items.append(f"Found: {item.title} in {item}")
             for item in canvas.text_labels:
                 if search_term.lower() in item.label.text().lower():
-                    print(f"Found: {item.label.text()} in {item}")
+                    found_items.append(f"Found: {item.label.text()} in {item}")
             for item in canvas.images:
                 if search_term.lower() in item.filename.lower():
-                    print(f"Found: {item.filename} in {item}")
+                    found_items.append(f"Found: {item.filename} in {item}")
             for item in canvas.audio_files:
                 if search_term.lower() in item.filename.lower():
-                    print(f"Found: {item.filename} in {item}")
+                    found_items.append(f"Found: {item.filename} in {item}")
             for item in Sticky.stickies:
                 if search_term.lower() in item.plain_text_content.lower():
-                    print(f"Found: {item.plain_text_content} in {item}")
+                    found_items.append(f"Found: {item.plain_text_content} in {item}")
+
+            results_text = '\n'.join(found_items)
+            self.results_label.setText(results_text)
+
+            num_lines = results_text.count('\n') + 1
+            self.setFixedHeight(100 + num_lines * 20)
+
+            self.results_label.show()
+            self.fade_timer.start(1000)
+
+    def hide_results_label(self):
+        self.results_label.hide()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
