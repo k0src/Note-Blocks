@@ -15,7 +15,8 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalett
 # embed links
 # Embed files
 # Save/open
-# fonts
+# DEFUALT GLOBAl fonts
+# ADD STICKY CONTEXT MENU
 
 class Sticky(QPlainTextEdit):
     def __init__(self, parent=None):
@@ -59,6 +60,17 @@ class Sticky(QPlainTextEdit):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = False
+
+    def contextMenuEvent(self, event):
+        context_menu = QMenu(self)
+
+        action1 = QAction("Custom Action 1", self)
+        action2 = QAction("Custom Action 2", self)
+
+        context_menu.addAction(action1)
+        context_menu.addAction(action2)
+
+        context_menu.exec(event.globalPos())
 
 class ImageWidget(QWidget):
     def __init__(self, pixmap, parent=None):
@@ -292,10 +304,10 @@ class NoteEditWindow(QDialog):
         
         self.title_label = QLabel("")
 
-        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Light.ttf")
+        title_font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Light.ttf")
 
-        if font_id != -1:
-            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+        if title_font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(title_font_id)[0]
             font = QFont(font_family)
             font.setPointSize(12)
             self.title_label.setFont(font)
@@ -303,6 +315,16 @@ class NoteEditWindow(QDialog):
             print("Font not found")
 
         layout.addWidget(self.title_label)
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(50)
+            self.setFont(font)
+        else:
+            print("Font not found")
         
         self.editor = QTextEdit()
         self.editor.setPlainText(self.plain_text_content)
@@ -798,6 +820,17 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+
+    font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+
+    if font_id != -1:
+        font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+        font = QFont(font_family)
+        font.setPointSize(10)
+        app.setFont(font)
+    else:
+        print("Font not found")
+
     window = MainWindow()
     window.setGeometry(100, 100, 800, 600)
     window.show()
