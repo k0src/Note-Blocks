@@ -648,6 +648,9 @@ class Canvas(QWidget):
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
             self.editTitle()
+        if obj in self.note_nodes and event.type() == event.Type.MouseButtonDblClick:
+            self.editNote()
+            return True
         return super().eventFilter(obj, event)
 
     def contextMenuEvent(self, event):
@@ -740,6 +743,10 @@ class Canvas(QWidget):
             note_node.move(cursor_pos)
             note_node.setTitle(title)
             self.note_nodes.append(note_node)
+
+            for note in self.note_nodes:
+                note.installEventFilter(self)
+
             note_node.show()
             self.title_label.raise_()
 
@@ -1364,14 +1371,9 @@ class MainWindow(QMainWindow):
         exit_action.triggered.connect(self.exitApp)
 
         help_menu = self.menuBar().addMenu("&Help")
-
         about_action = QAction("&About", self)
-        tutorail_action = QAction("&Tutorial", self)
         help_menu.addAction(about_action)
-        help_menu.addAction(tutorail_action)
-
         about_action.triggered.connect(self.about)
-        tutorail_action.triggered.connect(self.tutorial)
 
     def newFile(self):
         print("New")
@@ -1390,9 +1392,6 @@ class MainWindow(QMainWindow):
 
     def about(self):
         QDesktopServices.openUrl(QUrl('https://github.com/k0src/Note-Blocks'))
-    
-    def tutorial(self):
-        print("Tutorial")
 
 def main():
     app = QApplication(sys.argv)
