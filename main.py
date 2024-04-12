@@ -19,9 +19,9 @@ from PyQt6.QtMultimedia import QMediaPlayer
 # first time tutorial
 # table
 # Search
+# calendar
 
 # embed links - html embed
-# Embed files - audio
 # Save/open - json
 
 class AudioWidget(QWidget):
