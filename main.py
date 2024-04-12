@@ -2,7 +2,7 @@ import sys
 import random
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
-                             QTextEdit, QPushButton, QTextBrowser, QFileDialog)
+                             QTextEdit, QPushButton, QTextBrowser, QFileDialog, QGraphicsDropShadowEffect)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
 from PyQt6.QtGui import (QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette, 
                          QPixmap, QPainterPath)
@@ -41,6 +41,13 @@ class ImageWidget(QWidget):
         self.image_label = QLabel(self)
         self.image_label.setPixmap(pixmap.scaled(new_width, new_height, Qt.AspectRatioMode.KeepAspectRatio))
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        shadow_effect = QGraphicsDropShadowEffect(self)
+        shadow_effect.setBlurRadius(15)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
+        shadow_effect.setOffset(3, 3)
+
+        self.setGraphicsEffect(shadow_effect)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -96,6 +103,13 @@ class Subcanvas(QWidget):
         self.resize_offset = QPoint()
         self.draggable = False
 
+        shadow_effect = QGraphicsDropShadowEffect(self)
+        shadow_effect.setBlurRadius(15)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
+        shadow_effect.setOffset(3, 3)
+
+        self.setGraphicsEffect(shadow_effect)
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             resize_handle_rect = QRect(self.width() - 10, self.height() - 10, 10, 10)
@@ -145,6 +159,13 @@ class NoteNode(QWidget):
         self.title_label = QLabel(self.title, self)
         self.title_label.setGeometry(0, 0, self.width(), 25)
         self.title_label.setStyleSheet("color: black;")
+
+        shadow_effect = QGraphicsDropShadowEffect(self)
+        shadow_effect.setBlurRadius(15)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
+        shadow_effect.setOffset(3, 3)
+
+        self.setGraphicsEffect(shadow_effect)
 
         self.line_lengths = []
         for _ in range(7):
