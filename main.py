@@ -23,6 +23,65 @@ from PyQt6.QtMultimedia import QMediaPlayer
 
 # embed links - html embed
 # Save/open - json
+# delete / delete all , arrange search bars
+# search - note names, image file names, audio file names, text labels, stickies text
+
+class SearchBar(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Search Bar")
+        self.resize(200, 80)
+        
+        layout = QVBoxLayout()
+
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Search...")
+        self.search_input.setStyleSheet("border: 2px solid black; border-color: #212121;")
+        self.draggable = False
+
+        self.search_input.editingFinished.connect(self.clearFocus)
+        layout.addWidget(self.search_input)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        self.search_button = QPushButton("Search")
+        self.search_button.clicked.connect(self.search)
+        self.search_button.setFixedSize(60, 20)
+
+        button_layout.addWidget(self.search_button)
+        button_layout.addStretch()
+
+        layout.addLayout(button_layout)
+
+        self.setLayout(layout)
+
+    def search(self):
+        search_term = self.search_input.text()
+        if search_term:
+            canvas = self.parent()
+            for item in canvas.note_nodes + canvas.subcanvases + canvas.text_labels + canvas.images:
+                if search_term.lower() in item.text().lower():
+                    print(f"Found: {item.text()}")
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = True
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = False
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.search_input.clearFocus()
+        else:
+            super().keyPressEvent(event)
 
 class AudioWidget(QWidget):
     def __init__(self, file_path, parent=None):
@@ -201,6 +260,12 @@ class Sticky(QPlainTextEdit):
                 sticky.deleteLater()
                 self.stickies.remove(sticky)
                 return
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            self.clearFocus()
+        else:
+            super().keyPressEvent(event)
 
 class ImageWidget(QWidget):
     def __init__(self, pixmap, parent=None):
@@ -533,6 +598,7 @@ class Canvas(QWidget):
         self.text_labels = []
         self.images = []
         self.audio_files = []
+        self.search_bars = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -550,6 +616,7 @@ class Canvas(QWidget):
         new_subcanvas_action = new_submenu.addAction("New &Block")
         new_sticky = new_submenu.addAction("New &Sticky")
         new_audio_file = new_submenu.addAction("New &Audio File")
+        new_search_bar = new_submenu.addAction("New &Search Bar")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -592,6 +659,7 @@ class Canvas(QWidget):
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
         new_sticky.triggered.connect(self.createNewSticky)
         new_audio_file.triggered.connect(self.createNewAudioFile)
+        new_search_bar.triggered.connect(self.createNewSearchBar)
 
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
@@ -683,6 +751,14 @@ class Canvas(QWidget):
             audio_widget.show()
             self.audio_files.append(audio_widget)
             self.title_label.raise_()
+
+    def createNewSearchBar(self):
+        cursor_pos = QCursor.pos()
+        search_bar = SearchBar(self)
+        search_bar.move(cursor_pos)
+        search_bar.show()
+        self.search_bars.append(search_bar)
+        self.title_label.raise_()
 
     def editNote(self):
         for note_node in self.note_nodes:
