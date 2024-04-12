@@ -24,8 +24,6 @@ from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 # embed links - html embed
 # Save/open - json
 
-# DELETE ARRANGE SERACH BAR
-
 class SearchBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -618,6 +616,8 @@ class Canvas(QWidget):
         super().__init__()
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
 
+        self.has_search_bar = False
+
         self.setWindowTitle("My Notes")
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -661,6 +661,7 @@ class Canvas(QWidget):
         new_sticky = new_submenu.addAction("New &Sticky")
         new_audio_file = new_submenu.addAction("New &Audio File")
         new_search_bar = new_submenu.addAction("New &Search Bar")
+        new_search_bar.setEnabled(not self.has_search_bar)
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -798,12 +799,14 @@ class Canvas(QWidget):
             self.title_label.raise_()
 
     def createNewSearchBar(self):
-        cursor_pos = QCursor.pos()
-        search_bar = SearchBar(self)
-        search_bar.move(cursor_pos)
-        search_bar.show()
-        self.search_bars.append(search_bar)
-        self.title_label.raise_()
+        if not self.has_search_bar:
+            cursor_pos = QCursor.pos()
+            search_bar = SearchBar(self)
+            search_bar.move(cursor_pos)
+            search_bar.show()
+            self.search_bars.append(search_bar)
+            self.has_search_bar = True
+            self.title_label.raise_()
 
     def editNote(self):
         for note_node in self.note_nodes:
@@ -878,6 +881,20 @@ class Canvas(QWidget):
                         audio_file.updateFont(12)
                     else:
                         audio_file.updateFont(10)
+                break
+
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Rename Search Bar")
+                input_dialog.setLabelText("Set Placeholder Text:")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    new_text = input_dialog.textValue()
+                    search_bar.search_input.setPlaceholderText(new_text)
                 break
 
     def changeNoteColor(self):
@@ -1019,6 +1036,27 @@ class Canvas(QWidget):
                     break
                 break
 
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        search_bar.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
+
     def changeLabelFontSize(self):
         for text_label in self.text_labels:
             if text_label.underMouse():
@@ -1072,6 +1110,12 @@ class Canvas(QWidget):
                 self.title_label.raise_()
                 break
 
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                search_bar.raise_()
+                self.title_label.raise_()
+                break
+
     def sendToBack(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
@@ -1098,71 +1142,89 @@ class Canvas(QWidget):
                 audio_file.lower()
                 break
 
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                search_bar.lower()
+                break
+
     def all_the_way_to_front(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     note_node.raise_()
                 self.title_label.raise_()
                 break
 
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     subcanvas.raise_()
                 self.title_label.raise_()
                 break
 
         for text_label in self.text_labels:
             if text_label.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     text_label.raise_()
                 self.title_label.raise_()
                 break
 
         for image in self.images:
             if image.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     image.raise_()
                 self.title_label.raise_()
                 break
 
         for audio_file in self.audio_files:
             if audio_file.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     audio_file.raise_()
+                self.title_label.raise_()
+                break
+
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
+                    search_bar.raise_()
                 self.title_label.raise_()
                 break
 
     def all_the_way_to_back(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     note_node.lower()
                 break
 
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     subcanvas.lower()
                 break
 
         for text_label in self.text_labels:
             if text_label.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     text_label.lower()
                 break
 
         for image in self.images:
             if image.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     image.lower()
                 break
                 
         for audio_file in self.audio_files:
             if audio_file.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
                     audio_file.lower()
+                break
+
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files) + len(self.search_bars)):
+                    search_bar.lower()
                 break
 
     def copyActionTriggered(self):
@@ -1204,6 +1266,13 @@ class Canvas(QWidget):
                 audio_file.deleteLater()
                 self.audio_files.remove(audio_file)
                 return
+
+        for search_bar in self.search_bars:
+            if search_bar.underMouse():
+                self.has_search_bar = False
+                search_bar.deleteLater()
+                self.search_bars.remove(search_bar)
+                return
             
     def deleteAll(self):
         subcanvases_copy = self.subcanvases.copy()
@@ -1212,6 +1281,7 @@ class Canvas(QWidget):
         images_copy = self.images.copy()
         stickies_copy = Sticky.stickies.copy()
         audio_foiles_copy = self.audio_files.copy()
+        search_bars_copy = self.search_bars.copy()
 
         for subcanvas in subcanvases_copy:
             subcanvas.deleteLater()
@@ -1236,6 +1306,12 @@ class Canvas(QWidget):
         for audio_file in audio_foiles_copy:
             audio_file.deleteLater()
             self.audio_files.remove(audio_file)
+
+        for search_bar in search_bars_copy:
+            if self.has_search_bar:
+                self.has_search_bar = False
+            search_bar.deleteLater()
+            self.search_bars.remove(search_bar)
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
