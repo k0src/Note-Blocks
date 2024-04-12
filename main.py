@@ -9,6 +9,7 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalett
 
 # FIX NOTES TOUCHING PROBLEM
 # FIX TEXT SIZING PROBLEM
+# FIX WEIRD MOUSE POS PROBLEM
 
 # pin method
 # embed links
@@ -480,6 +481,7 @@ class Canvas(QWidget):
         separator.setSeparator(True)
         menu.addAction(separator)
         delete_action = menu.addAction("&Delete")
+        delete_all_action = menu.addAction("Clear All")
 
         new_note_action.triggered.connect(self.createNewNote)
         new_text_label_action.triggered.connect(self.createNewTextLabel)
@@ -497,6 +499,7 @@ class Canvas(QWidget):
         cut_action.triggered.connect(self.cutActionTriggered)
         paste_action.triggered.connect(self.pasteActionTriggered)
         delete_action.triggered.connect(self.deleteActionTriggered)
+        delete_all_action.triggered.connect(self.deleteAll)
 
         bring_to_front_action.triggered.connect(self.bringToFront)
         send_to_back_action.triggered.connect(self.sendToBack)
@@ -548,6 +551,16 @@ class Canvas(QWidget):
             image_widget.move(cursor_pos)
             image_widget.show()
             self.title_label.raise_()
+
+    def createSubcanvas(self):
+        cursor_pos = QCursor.pos()
+        subcanvas = Subcanvas(parent=self)
+        subcanvas.move(cursor_pos)
+        subcanvas.lower()
+        self.subcanvases.append(subcanvas)
+        subcanvas.show()
+
+        self.title_label.raise_()
 
     def createNewSticky(self):
         cursor_pos = QCursor.pos()
@@ -826,16 +839,6 @@ class Canvas(QWidget):
                     image.lower()
                 break
 
-    def createSubcanvas(self):
-        cursor_pos = QCursor.pos()
-        subcanvas = Subcanvas(parent=self)
-        subcanvas.move(cursor_pos)
-        subcanvas.lower()
-        self.subcanvases.append(subcanvas)
-        subcanvas.show()
-
-        self.title_label.raise_()
-
     def copyActionTriggered(self):
         print("Copy")
 
@@ -869,6 +872,33 @@ class Canvas(QWidget):
                 image.deleteLater()
                 self.images.remove(image)
                 return
+            
+    def deleteAll(self):
+        subcanvases_copy = self.subcanvases.copy()
+        note_nodes_copy = self.note_nodes.copy()
+        text_labels_copy = self.text_labels.copy()
+        images_copy = self.images.copy()
+        stickies_copy = Sticky.stickies.copy()
+
+        for subcanvas in subcanvases_copy:
+            subcanvas.deleteLater()
+            self.subcanvases.remove(subcanvas)
+        
+        for note_node in note_nodes_copy:
+            note_node.deleteLater()
+            self.note_nodes.remove(note_node)
+        
+        for text_label in text_labels_copy:
+            text_label.deleteLater()
+            self.text_labels.remove(text_label)
+        
+        for image in images_copy:
+            image.deleteLater()
+            self.images.remove(image)
+        
+        for sticky in stickies_copy:
+            sticky.deleteLater()
+            Sticky.stickies.remove(sticky)
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
