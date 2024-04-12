@@ -1,20 +1,113 @@
 import sys
+import os
 import random
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
                              QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QPlainTextEdit)
-from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl
 from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
+from PyQt6.QtMultimedia import QMediaPlayer
 
 # FIX NOTES TOUCHING PROBLEM
 # FIX TEXT SIZING PROBLEM
 # FIX WEIRD MOUSE POS PROBLEM
+# FIX QMEDIA PLAYER PROBLEM
 
-# pin method
-# embed links
-# Embed files
-# Save/open
+# embed links - html embed
+# Embed files - audio
+# Save/open - json
+
+# ADD DELETE ARRANGE CLEAR ALL RAISE FOR AUDIO FILES COLOR CHANGE
+
+class AudioWidget(QWidget):
+    def __init__(self, file_path, parent=None):
+        super().__init__(parent)
+        self.file_path = file_path
+        self.setFixedSize(250, 50)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: #6a5a8a; border: 2px solid black; border-color: #212121; color: #212121;")
+        self.draggable = False
+        self.offset = QPoint()
+
+        shadow_effect = QGraphicsDropShadowEffect(self)
+        shadow_effect.setBlurRadius(15)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
+        shadow_effect.setOffset(3, 3)
+
+        self.setGraphicsEffect(shadow_effect)
+
+        filename = os.path.basename(file_path)
+
+        self.audio_label = QLabel(self)
+        self.audio_label.setText(filename)
+        self.audio_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.audio_label.setStyleSheet("QLabel { border: 0px solid black; }")
+
+        self.play_button = QPushButton("Play", self)
+        self.play_button.setMaximumWidth(50)
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Bold.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(10)
+            self.play_button.setFont(font)
+        else:
+            print("Font not found")
+
+        self.play_button.setStyleSheet("QPushButton { border: 0px solid black; }")
+        self.play_button.clicked.connect(self.toggle_audio)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.audio_label)
+        layout.addWidget(self.play_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.setLayout(layout)
+        
+        self.audio_player = QMediaPlayer()
+        self.audio_playing = False
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            if len(filename) > 30:
+                font.setPointSize(6)
+            elif len(filename) > 20:
+                font.setPointSize(8)
+            elif len(filename) < 10:
+                font.setPointSize(12)
+            else:
+                font.setPointSize(10)
+            self.audio_label.setFont(font)
+        else:
+            print("Font not found")
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = True
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = False
+
+    def toggle_audio(self):
+        if not self.audio_playing:
+            self.audio_player.setSource(QUrl.fromLocalFile(self.file_path))
+            self.audio_player.play()
+            self.play_button.setText("Stop")
+            self.audio_playing = True
+        else:
+            self.audio_player.stop()
+            self.play_button.setText("Play")
+            self.audio_playing = False
 
 class Sticky(QPlainTextEdit):
     stickies = []
@@ -447,6 +540,7 @@ class Canvas(QWidget):
         new_image_action = new_submenu.addAction("New &Image")
         new_subcanvas_action = new_submenu.addAction("New &Block")
         new_sticky = new_submenu.addAction("New &Sticky")
+        new_audio_file = new_submenu.addAction("New &Audio File")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -488,6 +582,7 @@ class Canvas(QWidget):
         new_image_action.triggered.connect(self.createNewImage)
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
         new_sticky.triggered.connect(self.createNewSticky)
+        new_audio_file.triggered.connect(self.createNewAudioFile)
 
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
@@ -569,6 +664,15 @@ class Canvas(QWidget):
         Sticky.stickies.append(new_sticky)
         new_sticky.show()
         self.title_label.raise_()
+
+    def createNewAudioFile(self):
+        cursor_pos = QCursor.pos()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.mp3 *.wav *.ogg)")
+        if file_path:
+            audio_widget = AudioWidget(file_path, self)
+            audio_widget.move(cursor_pos)
+            audio_widget.show()
+            self.title_label.raise_()
 
     def editNote(self):
         for note_node in self.note_nodes:
