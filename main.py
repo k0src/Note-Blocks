@@ -142,7 +142,6 @@ class Sticky(QPlainTextEdit):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = True
