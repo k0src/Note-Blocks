@@ -24,8 +24,6 @@ from PyQt6.QtMultimedia import QMediaPlayer
 # embed links - html embed
 # Save/open - json
 
-
-
 class SearchBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -62,19 +60,19 @@ class SearchBar(QWidget):
             canvas = self.parent()
             for item in canvas.note_nodes:
                 if search_term.lower() in item.title.lower():
-                    print(f"Found: {item.title}")
+                    print(f"Found: {item.title} in {item}")
             for item in canvas.text_labels:
                 if search_term.lower() in item.label.text().lower():
-                    print(f"Found: {item.label.text()}")
+                    print(f"Found: {item.label.text()} in {item}")
             for item in canvas.images:
                 if search_term.lower() in item.filename.lower():
-                    print(f"Found: {item.filename}")
+                    print(f"Found: {item.filename} in {item}")
             for item in canvas.audio_files:
                 if search_term.lower() in item.filename.lower():
-                    print(f"Found: {item.filename}")
+                    print(f"Found: {item.filename} in {item}")
             for item in Sticky.stickies:
                 if search_term.lower() in item.plain_text_content.lower():
-                    print(f"Found: {item.plain_text_content}")
+                    print(f"Found: {item.plain_text_content} in {item}")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
