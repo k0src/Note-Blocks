@@ -441,29 +441,29 @@ class Canvas(QWidget):
 
         new_submenu = menu.addMenu("New")
 
-        new_note_action = new_submenu.addAction("New Note")
-        new_text_label_action = new_submenu.addAction("New Text Label")
-        new_image_action = new_submenu.addAction("New Image")
-        new_subcanvas_action = new_submenu.addAction("New Block")
-        new_sticky = new_submenu.addAction("New Sticky")
+        new_note_action = new_submenu.addAction("New &Note")
+        new_text_label_action = new_submenu.addAction("New &Text Label")
+        new_image_action = new_submenu.addAction("New &Image")
+        new_subcanvas_action = new_submenu.addAction("New &Block")
+        new_sticky = new_submenu.addAction("New &Sticky")
 
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
 
-        edit_note_action = menu.addAction("Edit")
-        note_color_action = menu.addAction("Change Color")
-        rename_note_action = menu.addAction("Rename")
-        change_opacity_action = menu.addAction("Change Opacity")
-        change_label_font_size = menu.addAction("Change Font Size")
+        edit_note_action = menu.addAction("&Edit")
+        note_color_action = menu.addAction("Ch&ange Color")
+        rename_note_action = menu.addAction("&Rename")
+        change_opacity_action = menu.addAction("Change &Opacity")
+        change_label_font_size = menu.addAction("Change &Font Size")
 
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
         
-        copy_action = menu.addAction("Copy")
-        cut_action = menu.addAction("Cut")
-        paste_action = menu.addAction("Paste")
+        copy_action = menu.addAction("&Copy")
+        cut_action = menu.addAction("C&ut")
+        paste_action = menu.addAction("&Paste")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -471,15 +471,15 @@ class Canvas(QWidget):
 
         arrange_submenu = menu.addMenu("Arrange")
 
-        bring_to_front_action = arrange_submenu.addAction("Move Forward")
-        send_to_back_action = arrange_submenu.addAction("Move Backward")
-        all_the_way_to_front = arrange_submenu.addAction("Move to Front")
-        all_the_way_to_back = arrange_submenu.addAction("Move to Back")
+        bring_to_front_action = arrange_submenu.addAction("Move &Forward")
+        send_to_back_action = arrange_submenu.addAction("Move &Backward")
+        all_the_way_to_front = arrange_submenu.addAction("Move to F&ront")
+        all_the_way_to_back = arrange_submenu.addAction("Move to B&ack")
 
         separator = QAction(self)
         separator.setSeparator(True)
         menu.addAction(separator)
-        delete_action = menu.addAction("Delete")
+        delete_action = menu.addAction("&Delete")
 
         new_note_action.triggered.connect(self.createNewNote)
         new_text_label_action.triggered.connect(self.createNewTextLabel)
