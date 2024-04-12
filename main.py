@@ -11,12 +11,9 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalett
 # FIX TEXT SIZING PROBLEM
 
 # pin method
-# embed code (chnage name to sticky) - 
 # embed links
 # Embed files
 # Save/open
-
-# ADD STICKY CONTEXT MENU delete, opacity, move forward/backward - and raise title
 
 class Sticky(QPlainTextEdit):
     stickies = []
