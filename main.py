@@ -1,17 +1,20 @@
 import sys
 import random
-from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QSizePolicy, QMainWindow, 
+from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
-                             QTextEdit, QPushButton, QTextBrowser, QFileDialog, QGraphicsDropShadowEffect)
+                             QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
+                             QGraphicsDropShadowEffect, QGraphicsOpacityEffect)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
-from PyQt6.QtGui import (QFont, QAction, QCursor, QMouseEvent, QPainter, QPen, QColor, QPalette, 
-                         QPixmap, QPainterPath)
+from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap
 
 # FIX NOTES TOUCHING PROBLEM
+# FIX TEXT SIZING PROBLEM
+
 # pin method
-# embed yt
 # embed code
 # embed links
+# Embed files
+# Save/open
 
 class ImageWidget(QWidget):
     def __init__(self, pixmap, parent=None):
@@ -306,7 +309,7 @@ class Canvas(QWidget):
         new_note_action = menu.addAction("New Note")
         new_text_label_action = menu.addAction("New Text Label")
         new_image_action = menu.addAction("New Image")
-        new_subcanvas_action = menu.addAction("New Canvas")
+        new_subcanvas_action = menu.addAction("New Block")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -315,6 +318,7 @@ class Canvas(QWidget):
         edit_note_action = menu.addAction("Edit")
         note_color_action = menu.addAction("Change Color")
         rename_note_action = menu.addAction("Rename")
+        change_opacity_action = menu.addAction("Change Opacity")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -344,6 +348,7 @@ class Canvas(QWidget):
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
         note_color_action.triggered.connect(self.changeNoteColor)
+        change_opacity_action.triggered.connect(self.changeOpacity)
        
         copy_action.triggered.connect(self.copyActionTriggered)
         cut_action.triggered.connect(self.cutActionTriggered)
@@ -460,6 +465,91 @@ class Canvas(QWidget):
                 if color.isValid():
                     text_label.label.setStyleSheet(f"color: {color.name()};")
                     break
+
+    def changeOpacity(self):
+        for subcanvas in self.subcanvases:
+            if subcanvas.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        subcanvas.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
+
+        for text_label in self.text_labels:
+            if text_label.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        text_label.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
+
+        for image in self.images:
+            if image.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        image.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
+        
+        for note_node in self.note_nodes:
+            if note_node.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        note_node.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
 
     def bringToFront(self):
         for note_node in self.note_nodes:
