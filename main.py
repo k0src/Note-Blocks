@@ -7,7 +7,8 @@ from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWind
                              QGraphicsDropShadowEffect, QGraphicsOpacityEffect, 
                              QPlainTextEdit)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl, QTimer
-from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
+from PyQt6.QtGui import (QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, 
+                         QFontDatabase, QDesktopServices)
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 
 # FIX NOTES TOUCHING PROBLEM
@@ -1388,7 +1389,7 @@ class MainWindow(QMainWindow):
         QApplication.quit()
 
     def about(self):
-        print("About")
+        QDesktopServices.openUrl(QUrl('https://github.com/k0src/Note-Blocks'))
     
     def tutorial(self):
         print("Tutorial")
