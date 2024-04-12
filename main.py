@@ -19,8 +19,11 @@ from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalett
 # ADD STICKY CONTEXT MENU delete, opacity, move forward/backward - and raise title
 
 class Sticky(QPlainTextEdit):
-    def __init__(self, parent=None):
+    stickies = []
+    
+    def __init__(self, parent=None, canvas_title_label=None):
         super().__init__(parent)
+        self.canvas_title_label = canvas_title_label
 
         font_id = QFontDatabase.addApplicationFont("fonts/FiraCode-Medium.ttf")
         if font_id != -1:
@@ -48,6 +51,7 @@ class Sticky(QPlainTextEdit):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
+
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.draggable = True
@@ -62,15 +66,42 @@ class Sticky(QPlainTextEdit):
             self.draggable = False
 
     def contextMenuEvent(self, event):
-        context_menu = QMenu(self)
+        menu = QMenu(self)
 
-        action1 = QAction("Custom Action 1", self)
-        action2 = QAction("Custom Action 2", self)
+        move_foward = menu.addAction("Move Forward")
+        move_backwards = menu.addAction("Move Backwards")
 
-        context_menu.addAction(action1)
-        context_menu.addAction(action2)
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
 
-        context_menu.exec(event.globalPos())
+        delete_action = menu.addAction("Delete")
+
+        move_foward.triggered.connect(self.moveFoward)
+        move_backwards.triggered.connect(self.moveBackwards)
+        delete_action.triggered.connect(self.deleteSticky)
+
+        menu.exec(event.globalPos())
+
+    def moveFoward(self):
+        for sticky in self.stickies:
+            if sticky.underMouse():
+                sticky.raise_()
+                self.canvas_title_label.raise_() 
+                return
+    
+    def moveBackwards(self):
+        for sticky in self.stickies:
+            if sticky.underMouse():
+                sticky.lower()
+                return
+
+    def deleteSticky(self):
+        for sticky in self.stickies:
+            if sticky.underMouse():
+                sticky.deleteLater()
+                self.stickies.remove(sticky)
+                return
 
 class ImageWidget(QWidget):
     def __init__(self, pixmap, parent=None):
@@ -514,8 +545,9 @@ class Canvas(QWidget):
 
     def createNewSticky(self):
         cursor_pos = QCursor.pos()
-        new_sticky = Sticky(self)
+        new_sticky = Sticky(self, canvas_title_label=self.title_label)
         new_sticky.move(cursor_pos)
+        Sticky.stickies.append(new_sticky)
         new_sticky.show()
         self.title_label.raise_()
 
