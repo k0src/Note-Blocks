@@ -4,7 +4,8 @@ import random
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
-                             QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QPlainTextEdit)
+                             QGraphicsDropShadowEffect, QGraphicsOpacityEffect, 
+                             QPlainTextEdit)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect, QUrl
 from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
 from PyQt6.QtMultimedia import QMediaPlayer
@@ -14,11 +15,14 @@ from PyQt6.QtMultimedia import QMediaPlayer
 # FIX WEIRD MOUSE POS PROBLEM
 # FIX QMEDIA PLAYER PROBLEM
 
+# lock widgets
+# first time tutorial
+# table
+# Search
+
 # embed links - html embed
 # Embed files - audio
 # Save/open - json
-
-# ADD DELETE ARRANGE CLEAR ALL RAISE FOR AUDIO FILES COLOR CHANGE
 
 class AudioWidget(QWidget):
     def __init__(self, file_path, parent=None):
@@ -84,6 +88,11 @@ class AudioWidget(QWidget):
             self.audio_label.setFont(font)
         else:
             print("Font not found")
+
+    def updateFont(self, point_size):
+        font = self.audio_label.font()
+        font.setPointSize(point_size)
+        self.audio_label.setFont(font)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -523,6 +532,7 @@ class Canvas(QWidget):
         self.subcanvases = []
         self.text_labels = []
         self.images = []
+        self.audio_files = []
 
     def eventFilter(self, obj, event):
         if obj == self.title_label and event.type() == event.Type.MouseButtonDblClick:
@@ -671,6 +681,7 @@ class Canvas(QWidget):
             audio_widget = AudioWidget(file_path, self)
             audio_widget.move(cursor_pos)
             audio_widget.show()
+            self.audio_files.append(audio_widget)
             self.title_label.raise_()
 
     def editNote(self):
@@ -680,6 +691,21 @@ class Canvas(QWidget):
                 edit_window.noteSaved.connect(note_node.setTextContent)
                 edit_window.exec()
                 break
+
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                file_path, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.mp3 *.wav *.ogg)")
+                if file_path:
+                    audio_file.audio_player.setSource(QUrl.fromLocalFile(file_path))
+                    audio_file.audio_label.setText(os.path.basename(file_path))
+                    if len(os.path.basename(file_path)) > 30:
+                        audio_file.updateFont(6)
+                    elif len(os.path.basename(file_path)) > 20:
+                        audio_file.updateFont(8)
+                    elif len(os.path.basename(file_path)) < 10:
+                        audio_file.updateFont(12)
+                    else:
+                        audio_file.updateFont(10)
 
     def renameNote(self):
         for note_node in self.note_nodes:
@@ -710,6 +736,29 @@ class Canvas(QWidget):
                     text_label.setText(new_text)
                 break
 
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Rename Audio File")
+                input_dialog.setLabelText("Enter Audio File Name:")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    new_text = input_dialog.textValue()
+                    audio_file.audio_label.setText(new_text)
+
+                    if len(new_text) > 30:
+                        audio_file.updateFont(6)
+                    elif len(new_text) > 20:
+                        audio_file.updateFont(8)
+                    elif len(new_text) < 10:
+                        audio_file.updateFont(12)
+                    else:
+                        audio_file.updateFont(10)
+                break
+
     def changeNoteColor(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
@@ -733,6 +782,14 @@ class Canvas(QWidget):
                 color = QColorDialog.getColor(current_color, self)
                 if color.isValid():
                     text_label.label.setStyleSheet(f"color: {color.name()};")
+                    break
+
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                current_color = audio_file.palette().color(QPalette.ColorRole.Window)
+                color = QColorDialog.getColor(current_color, self)
+                if color.isValid():
+                    audio_file.setStyleSheet(f"background-color: {color.name()}; border: 2px solid black; border-color: #212121;")
                     break
 
     def changeOpacity(self):
@@ -820,6 +877,27 @@ class Canvas(QWidget):
                     break
                 break
 
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                cursor_pos = QCursor.pos()
+                input_dialog = QInputDialog(self)
+                input_dialog.setWindowTitle("Change Opacity")
+                input_dialog.setLabelText("Opacity (1-100):")
+                input_dialog.resize(300, 100)
+                input_dialog.move(cursor_pos)
+                ok = input_dialog.exec()
+                if ok:
+                    try:
+                        opacity = int(input_dialog.textValue())
+                        opacity /= 100
+                        opacity_effect = QGraphicsOpacityEffect()
+                        opacity_effect.setOpacity(opacity)
+                        audio_file.setGraphicsEffect(opacity_effect)
+                    except ValueError:
+                        break
+                    break
+                break
+
     def changeLabelFontSize(self):
         for text_label in self.text_labels:
             if text_label.underMouse():
@@ -866,6 +944,12 @@ class Canvas(QWidget):
                 image.raise_()
                 self.title_label.raise_()
                 break
+        
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                audio_file.raise_()
+                self.title_label.raise_()
+                break
 
     def sendToBack(self):
         for note_node in self.note_nodes:
@@ -888,58 +972,76 @@ class Canvas(QWidget):
                 image.lower()
                 break
 
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                audio_file.lower()
+                break
+
     def all_the_way_to_front(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     note_node.raise_()
                 self.title_label.raise_()
                 break
 
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     subcanvas.raise_()
                 self.title_label.raise_()
                 break
 
         for text_label in self.text_labels:
             if text_label.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     text_label.raise_()
                 self.title_label.raise_()
                 break
 
         for image in self.images:
             if image.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     image.raise_()
+                self.title_label.raise_()
+                break
+
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                    audio_file.raise_()
                 self.title_label.raise_()
                 break
 
     def all_the_way_to_back(self):
         for note_node in self.note_nodes:
             if note_node.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     note_node.lower()
                 break
 
         for subcanvas in self.subcanvases:
             if subcanvas.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     subcanvas.lower()
                 break
 
         for text_label in self.text_labels:
             if text_label.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     text_label.lower()
                 break
 
         for image in self.images:
             if image.underMouse():
-                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images)):
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
                     image.lower()
+                break
+                
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                for i in range(len(self.note_nodes) + len(self.subcanvases) + len(self.text_labels) + len(self.images) + len(self.audio_files)):
+                    audio_file.lower()
                 break
 
     def copyActionTriggered(self):
@@ -975,6 +1077,12 @@ class Canvas(QWidget):
                 image.deleteLater()
                 self.images.remove(image)
                 return
+
+        for audio_file in self.audio_files:
+            if audio_file.underMouse():
+                audio_file.deleteLater()
+                self.audio_files.remove(audio_file)
+                return
             
     def deleteAll(self):
         subcanvases_copy = self.subcanvases.copy()
@@ -982,6 +1090,7 @@ class Canvas(QWidget):
         text_labels_copy = self.text_labels.copy()
         images_copy = self.images.copy()
         stickies_copy = Sticky.stickies.copy()
+        audio_foiles_copy = self.audio_files.copy()
 
         for subcanvas in subcanvases_copy:
             subcanvas.deleteLater()
@@ -1002,6 +1111,10 @@ class Canvas(QWidget):
         for sticky in stickies_copy:
             sticky.deleteLater()
             Sticky.stickies.remove(sticky)
+
+        for audio_file in audio_foiles_copy:
+            audio_file.deleteLater()
+            self.audio_files.remove(audio_file)
 
     def editTitle(self):
         self.title_edit = QLineEdit(self.title_label.text())
