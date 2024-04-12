@@ -459,6 +459,8 @@ class NoteNode(QWidget):
         self.title_label = QLabel(self.title, self)
         self.edit_window_size = None
 
+        self.prev_color = None
+
         font_id = QFontDatabase.addApplicationFont("fonts/Poppins-ExtraLight.ttf")
 
         if font_id != -1:
@@ -1112,8 +1114,11 @@ class Canvas(QWidget):
         for note_node in self.note_nodes:
             if note_node.underMouse():
                 if note_node.isEnabled():
+                    note_node.prev_color = note_node.palette().color(QPalette.ColorRole.Window)
+                    note_node.setStyleSheet("background-color: #3b3b3b; border: 2px solid black; border-color: #212121;")
                     note_node.setDisabled(True)
                 else:
+                    note_node.setStyleSheet(f"background-color: {note_node.prev_color.name()}; border: 2px solid black; border-color: #212121;")
                     note_node.setDisabled(False)
                 break
 
