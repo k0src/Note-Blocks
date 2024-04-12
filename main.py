@@ -3,18 +3,62 @@ import random
 from PyQt6.QtWidgets import (QApplication, QInputDialog, QColorDialog, QMainWindow, 
                              QWidget, QVBoxLayout, QLabel, QLineEdit, QMenu, QDialog, QHBoxLayout, 
                              QTextEdit, QPushButton, QTextBrowser, QFileDialog, 
-                             QGraphicsDropShadowEffect, QGraphicsOpacityEffect)
+                             QGraphicsDropShadowEffect, QGraphicsOpacityEffect, QPlainTextEdit)
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QRect
-from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap
+from PyQt6.QtGui import QFont, QAction, QCursor, QPainter, QPen, QColor, QPalette, QPixmap, QFontDatabase
 
 # FIX NOTES TOUCHING PROBLEM
 # FIX TEXT SIZING PROBLEM
 
 # pin method
-# embed code
+# embed code (chnage name to sticky) - delete, opacity, move forward/backward
 # embed links
 # Embed files
 # Save/open
+# fonts
+
+class Sticky(QPlainTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        font_id = QFontDatabase.addApplicationFont("fonts/FiraCode-Medium.ttf")
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(16)
+            self.setFont(font)
+        else:
+            print("Font not found")
+
+        self.setFixedSize(300, 300)
+        self.setMinimumSize(300, 300)
+        self.setMaximumSize(parent.size())
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: #8f8f8f; border: 2px solid black; border-color: #212121; color: black;")
+        self.draggable = False
+
+        shadow_effect = QGraphicsDropShadowEffect(self)
+        shadow_effect.setBlurRadius(15)
+        shadow_effect.setColor(QColor(0, 0, 0, 100))
+        shadow_effect.setOffset(3, 3)
+
+        self.setGraphicsEffect(shadow_effect)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = True
+            self.offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.draggable:
+            self.move(self.mapToParent(event.pos() - self.offset))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.draggable = False
 
 class ImageWidget(QWidget):
     def __init__(self, pixmap, parent=None):
@@ -70,9 +114,17 @@ class MovableTextLabel(QWidget):
         super().__init__(parent)
         self.label = QLabel(text, self)
         self.label.setStyleSheet("color: #c7c7c7;")
-        font = self.label.font()
-        font.setPointSize(18)
-        self.label.setFont(font)
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(18)
+            self.label.setFont(font)
+        else:
+            print("Font not found")
+
         self.draggable = False
         self.offset = QPoint()
         self.label.adjustSize()
@@ -160,6 +212,17 @@ class NoteNode(QWidget):
         self.markdown_content = ""
         self.title = ""
         self.title_label = QLabel(self.title, self)
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-ExtraLight.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(12)
+            self.title_label.setFont(font)
+        else:
+            print("Font not found")
+
         self.title_label.setGeometry(0, 0, self.width(), 25)
         self.title_label.setStyleSheet("color: black;")
 
@@ -228,6 +291,17 @@ class NoteEditWindow(QDialog):
         layout = QVBoxLayout()
         
         self.title_label = QLabel("")
+
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Light.ttf")
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(12)
+            self.title_label.setFont(font)
+        else:
+            print("Font not found")
+
         layout.addWidget(self.title_label)
         
         self.editor = QTextEdit()
@@ -281,16 +355,24 @@ class NoteEditWindow(QDialog):
 class Canvas(QWidget):
     def __init__(self):
         super().__init__()
+        font_id = QFontDatabase.addApplicationFont("fonts/Poppins-Medium.ttf")
+
         self.setWindowTitle("My Notes")
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.setLayout(layout)
         self.title_label = QLabel("My Notes")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = QFont()
-        font.setPointSize(20)
+
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            font = QFont(font_family)
+            font.setPointSize(20)
+            self.title_label.setFont(font)
+        else:
+            print("Font not found")
+
         self.setStyleSheet("color: #c7c7c7;")
-        self.title_label.setFont(font)
         layout.addWidget(self.title_label)
         self.title_label.setMouseTracking(True)
         self.title_label.installEventFilter(self)
@@ -310,6 +392,7 @@ class Canvas(QWidget):
         new_text_label_action = menu.addAction("New Text Label")
         new_image_action = menu.addAction("New Image")
         new_subcanvas_action = menu.addAction("New Block")
+        new_sticky = menu.addAction("New Sticky")
 
         separator = QAction(self)
         separator.setSeparator(True)
@@ -344,6 +427,7 @@ class Canvas(QWidget):
         new_text_label_action.triggered.connect(self.createNewTextLabel)
         new_image_action.triggered.connect(self.createNewImage)
         new_subcanvas_action.triggered.connect(self.createSubcanvas)
+        new_sticky.triggered.connect(self.createNewSticky)
 
         edit_note_action.triggered.connect(self.editNote)
         rename_note_action.triggered.connect(self.renameNote)
@@ -403,6 +487,13 @@ class Canvas(QWidget):
             image_widget.move(cursor_pos)
             image_widget.show()
             self.title_label.raise_()
+
+    def createNewSticky(self):
+        cursor_pos = QCursor.pos()
+        new_sticky = Sticky(self)
+        new_sticky.move(cursor_pos)
+        new_sticky.show()
+        self.title_label.raise_()
 
     def editNote(self):
         for note_node in self.note_nodes:
