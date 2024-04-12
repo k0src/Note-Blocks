@@ -270,10 +270,17 @@ class Sticky(QPlainTextEdit):
         separator.setSeparator(True)
         menu.addAction(separator)
 
+        disable_action = menu.addAction("Disable Widget")
+
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+
         delete_action = menu.addAction("Delete")
 
         move_foward.triggered.connect(self.moveFoward)
         move_backwards.triggered.connect(self.moveBackwards)
+        disable_action.triggered.connect(self.disableWidget)
         delete_action.triggered.connect(self.deleteSticky)
 
         menu.exec(event.globalPos())
@@ -290,6 +297,16 @@ class Sticky(QPlainTextEdit):
             if sticky.underMouse():
                 sticky.lower()
                 return
+            
+    def disableWidget(self):
+        for sticky in self.stickies:
+            if sticky.underMouse():
+                if sticky.isEnabled():
+                    sticky.setEnabled(False)
+                    sticky.setStyleSheet("background-color: #3b3b3b; border: 2px solid black; border-color: #212121; color: black; opacity: 0.5;")
+                else:
+                    sticky.setEnabled(True)
+                    sticky.setStyleSheet("background-color: #8f8f8f; border: 2px solid black; border-color: #212121; color: black;")
 
     def deleteSticky(self):
         for sticky in self.stickies:
@@ -1170,6 +1187,13 @@ class Canvas(QWidget):
                 else:
                     search_bar.setDisabled(False)
                 break
+
+        for sticky in Sticky.stickies:
+            if sticky.underMouse():
+                if not sticky.isEnabled():
+                    sticky.setEnabled(True)
+                    sticky.setEnabled(True)
+                    sticky.setStyleSheet("background-color: #8f8f8f; border: 2px solid black; border-color: #212121; color: black;")
 
     def bringToFront(self):
         for note_node in self.note_nodes:
