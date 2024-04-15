@@ -416,7 +416,15 @@ class Subcanvas(QWidget):
         self.setMinimumSize(225, 225)
         self.setMaximumSize(parent.size())
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: #454852; border: 2px solid black; border-color: #212121;")
+        
+        colors = [
+            '#454852', '#878a94', '#61546e', '#7d5e6b', '#8f6851', '#717849', '#4c4978', '#a65d94', 
+            '#6b6b6b', '#658182', '#235a5c', '#9e7793', '#70806c', '#22262e', '#5c4646', '#9c7676'
+        ]
+
+        self.random_color = random.choice(colors)
+
+        self.setStyleSheet(f"background-color: {self.random_color}; border: 2px solid black; border-color: #212121;")
         self.resizing = False
         self.resize_offset = QPoint()
         self.draggable = False
